@@ -1,12 +1,13 @@
 
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Workspace from './Components/Workspace/workspace.jsx';
+//import Workspace from './components/Workspace/workspace.jsx';
+import WorkspacePage from './pages/WorkspacePage';
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Workspace/>} />
+        <Route path="/" element={<WorkspacePage/>} />
       </Routes>
     </Router>
   );
