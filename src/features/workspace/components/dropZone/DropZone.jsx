@@ -1,5 +1,6 @@
-import {useDrop} from "react-dnd";
-import DroppedItem from './DroppedItem';
+import { useDrop } from "react-dnd";
+import DroppedItem from '../droppedItem/DroppedItem';
+import './DropZone.css';
 
 const DropZone = ({ onDrop, droppedItems, moveItem }) => {
     const [{ isOver }, drop] = useDrop(() => ({
@@ -30,7 +31,10 @@ const DropZone = ({ onDrop, droppedItems, moveItem }) => {
         <div ref={drop} className={`whiteboard ${isOver ? "drop-active" : ""}`}>
             <h2>WHITEBOARD (Drop Zone)</h2>
             {droppedItems.map((item) => (
-                <DroppedItem key={item.id} item={item} />
+                <DroppedItem
+                    key={item.id}
+                    item={item}
+                />
             ))}
         </div>
     );

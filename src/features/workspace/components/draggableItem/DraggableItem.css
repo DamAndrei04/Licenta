@@ -1,0 +1,22 @@
+.draggable-item {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    border-radius: 4px;
+    cursor: move;
+    transition: all 0.1s ease;
+    user-select: none;
+    width: 5%;
+}
+
+.draggable-item:hover {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    transform: translateY(-1px);
+}
+
+.draggable-item.dragging {
+    opacity: 1;
+    transform: rotate(5deg);
+}

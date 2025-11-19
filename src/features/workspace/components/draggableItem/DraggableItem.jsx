@@ -1,8 +1,9 @@
-import {useDrag} from "react-dnd";
+import { useDrag } from "react-dnd";
+import './DraggableItem.css';
 
-const DroppedItem = ({ item }) => {
+const DraggableItem = ({ type, displayName }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
-        type: "DROPPED_ITEM",
+        type: 'COMPONENT',
 
         item: (monitor) => {
             const initialClientOffset = monitor.getInitialClientOffset();
@@ -10,8 +11,8 @@ const DroppedItem = ({ item }) => {
             const offset = {
                 x: initialClientOffset.x - initialSourceOffset.x,
                 y: initialClientOffset.y - initialSourceOffset.y,
-            }
-            return { id: item.id, offset };
+            };
+            return {componentType: type, displayName, offset};
         },
 
         collect: (monitor) => ({
@@ -20,20 +21,10 @@ const DroppedItem = ({ item }) => {
     }));
 
     return (
-        <div
-            ref={drag}
-            className={`dropped-item ${isDragging ? "dragging" : ""}`}
-            style={{
-                position: "absolute",
-                left: item.x,
-                top: item.y,
-                cursor: "move",
-                opacity: isDragging ? 0.5 : 1,
-            }}
-        >
-            {item.name}
+        <div ref={drag} className={`draggable-item ${isDragging ? 'dragging' : ''}`} >
+            {displayName}
         </div>
     );
 };
 
-export default DroppedItem;
+export default DraggableItem;

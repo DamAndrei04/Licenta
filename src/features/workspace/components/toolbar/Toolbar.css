@@ -1,0 +1,40 @@
+.toolbar {
+    background-color: #f0f0f0;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.toolbar h2 {
+    margin: 0 0 1rem 0;
+}
+
+.clear-button {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 1rem;
+    width: 100px;
+    align-items: end;
+}
+
+.clear-button:hover {
+    background: #d32f2f;
+}
+
+.export-button{
+    justify-content: flex-end;
+    margin-top: 1rem;
+    margin-left: auto;
+    background-color: green;
+    color: white;
+    width: 100px;
+}
+.export-button:hover{
+    background: lightgreen;
+}
