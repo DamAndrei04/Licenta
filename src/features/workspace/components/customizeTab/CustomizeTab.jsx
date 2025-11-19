@@ -1,6 +1,8 @@
+import './CustomizeTab.css';
+
 const CustomizeTab = () => {
     return (
-        <div className="rightColumn">
+        <div className="customizeTab">
             <h2>CUSTOMIZE</h2>
         </div>
     );
