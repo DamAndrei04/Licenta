@@ -8,8 +8,14 @@ export const ComponentRegistry = {
         component: Button,
         defaultProps: {
             children: 'Click me',
-            variant: 'default'
+            variant: 'default',
+            className: 'w-full h-full text-sm'
         },
+        defaultSize: {
+            width: 120,
+            height: 40
+        },
+        canHaveChildren: false,
         displayName: 'Button'
     },
 
@@ -17,8 +23,15 @@ export const ComponentRegistry = {
         component: Input,
         defaultProps: {
             placeholder: 'Enter text here...',
-            type: 'text'
+            type: 'text',
+            className:'w-full h-full',
+
         },
+        defaultSize: {
+            width: 220,
+            height: 30
+        },
+        canHaveChildren: false,
         displayName: 'Input'
     },
 
@@ -27,6 +40,11 @@ export const ComponentRegistry = {
         defaultProps: {
             children: 'Card content',
         },
+        defaultSize: {
+            width: 300,
+            height: 200
+        },
+        canHaveChildren: true,
         displayName: 'Card'
     },
 
@@ -34,6 +52,10 @@ export const ComponentRegistry = {
         component: Label,
         defaultProps:{
             children: 'Label',
+        },
+        defaultSize: {
+            width: 100,
+            height: 30
         },
         displayName: 'Label'
     }
