@@ -1,6 +1,6 @@
 import "./ResizeHandle.css"
 
-function ResizeHandle({ dir, item, updateItem }) {
+function ResizeHandle({ dir, item, updateItem, canvasRef, parentWidth, parentHeight }) {
     const startResize = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -11,23 +11,55 @@ function ResizeHandle({ dir, item, updateItem }) {
         const startW = item.width;
         const startH = item.height;
 
+        const startLeft = item.x;
+        const startTop = item.y;
+
+        const minWidth = 40;
+        const minHeight = 30;
 
         const onMove = (ev) => {
+
             let w = startW;
             let h = startH;
+            let x = startLeft;
+            let y = startTop;
 
             const dx = ev.clientX - startX;
             const dy = ev.clientY - startY;
 
-            if (dir.includes("e")) w = startW + dx;
-            if (dir.includes("w")) w = startW - dx;
-            if (dir.includes("s")) h = startH + dy;
-            if (dir.includes("n")) h = startH - dy;
+            let maxWidth, maxHeight;
 
-            updateItem(item.id, {
-                width: Math.max(40, w),
-                height: Math.max(30, h),
-            });
+            if (parentWidth !== null && parentHeight !== null) {
+                // nested item use parent bounds
+                maxWidth = parentWidth - startLeft;
+                maxHeight = parentHeight - startTop;
+            } else if (canvasRef?.current) {
+                // root items use canvas bounds
+                const canvasRect = canvasRef.current.getBoundingClientRect();
+                maxWidth = canvasRect.width - startLeft;
+                maxHeight = canvasRect.height - startTop;
+            }
+
+            if (dir.includes("e")){
+                w = Math.min(Math.max(minWidth, startW + dx), maxWidth);
+            }
+            if (dir.includes("w")) {
+                const maxW = parentWidth ? startLeft + startW : startLeft + startW;
+                w = Math.min(Math.max(minWidth, startW - dx), maxW);
+                x = Math.min(startLeft + dx, startLeft + startW - minWidth);
+                x = Math.max(0, x);
+            }
+            if (dir.includes("s")) {
+                h = Math.min(Math.max(minHeight, startH + dy), maxHeight);
+            }
+            if (dir.includes("n")) {
+                const maxH = parentHeight ? startTop + startH : startTop + startH;
+                h = Math.min(Math.max(minHeight, startH - dy), maxH);
+                y = Math.min(startTop + dy, startTop + startH - minHeight);
+                y = Math.max(0, y);
+            }
+
+            updateItem(item.id, { width: w, height: h, x, y });
         };
 
         const onUp = () => {

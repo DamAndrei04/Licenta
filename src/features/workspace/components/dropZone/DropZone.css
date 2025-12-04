@@ -4,7 +4,8 @@
     height: 100%;
     border: 2px dashed #ddd;
     border-radius: 8px;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     min-height: 500px;
     transition: all 0.3s ease;
     padding: 1rem;

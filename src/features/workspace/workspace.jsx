@@ -51,6 +51,8 @@ export default function Main() {
         setSelectedId(id);
     };
 
+    const selectedElement = droppedItems.find(item => item.id === selectedId);
+
     const deselectAll = () => {
         setSelectedId(null);
     };
@@ -91,7 +93,12 @@ export default function Main() {
                             deselectAll={deselectAll}
                             selectedId={selectedId}
                         />
-                        <CustomizeTab />
+                        <CustomizeTab
+                            selectedElement={selectedElement}
+                            allItems={droppedItems}
+                            updateItem={updateItem}
+                            setSelectedElement={selectItem}
+                        />
                     </div>
                 </div>
             </div>

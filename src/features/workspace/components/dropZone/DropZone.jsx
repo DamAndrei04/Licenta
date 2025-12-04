@@ -1,6 +1,7 @@
 import { useDrop } from "react-dnd";
 import DroppedItem from '../droppedItem/DroppedItem';
 import './DropZone.css';
+import {useRef} from "react";
 
 const DropZone = ({
                       onDrop,
@@ -48,13 +49,19 @@ const DropZone = ({
         }
     };
 
+    const canvasRef = useRef(null);
+
+    const attachRefs = (node) => {
+        canvasRef.current = node;
+        drop(node);
+    }
+
     return (
         <div
-            ref={drop}
             className={`whiteboard ${isOver ? "drop-active" : ""}`}
+            ref={attachRefs}
             onClick={handleCanvasClick}
         >
-            <h2>WHITEBOARD (Drop Zone)</h2>
             {droppedItems.map((item) => (
                 <DroppedItem
                     key={item.id}
@@ -62,6 +69,7 @@ const DropZone = ({
                         ...item,
                         isSelected: item.id === selectedId
                     }}
+                    canvasRef={canvasRef}
                     allItems={allItems}
                     getChildren={getChildren}
                     onDrop={onDrop}
