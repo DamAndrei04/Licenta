@@ -4,7 +4,7 @@ import ResizeHandle from "../resizeHandlers/ResizeHandle";
 import "./DroppedItem.css";
 import { useDrop } from "react-dnd";
 
-const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateItem, selectedId }) => {
+const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateItem, selectedId, canvasRef }) => {
     const interactionRef = useRef(null);
 
     const registryItem = ComponentRegistry[item.type];
@@ -12,6 +12,10 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
     const mergedProps = { ...registryItem.defaultProps, ...item.props };
     const canHaveChildren = registryItem.canHaveChildren || false;
     const children = getChildren(item.id);
+
+    const parent = item.parentId ? allItems.find(p => p.id === item.parentId) : null;
+    const parentWidth = parent ? (parent.width || ComponentRegistry[parent.type]?.defaultSize.width) : null;
+    const parentHeight = parent ? (parent.height || ComponentRegistry[parent.type]?.defaultSize.height) : null;
 
     const [{ isOver }, drop] = useDrop(() => ({
         accept: ["COMPONENT", "DROPPED_ITEM"],
@@ -47,9 +51,6 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
 
     // DRAGGING LOGIC
     const startDrag = (e) => {
-        if (e.target.classList.contains('resize-handle')) {
-            return;
-        }
 
         e.stopPropagation();
         selectItem(item.id);
@@ -59,21 +60,23 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
         const startLeft = item.x;
         const startTop = item.y;
 
-        const parent = item.parentId ? allItems.find(p => p.id === item.parentId) : null;
-        const parentWidth = parent ? (parent.width || ComponentRegistry[parent.type]?.defaultSize.width) : null;
-        const parentHeight = parent ? (parent.height || ComponentRegistry[parent.type]?.defaultSize.height) : null;
 
         const onMove = (ev) => {
             let newX = startLeft + ev.clientX - startX;
             let newY = startTop + ev.clientY - startY;
 
+            const itemWidth = item.width || registryItem.defaultSize.width;
+            const itemHeight = item.height || registryItem.defaultSize.height;
+
             // Constrain to parent bounds if nested
             if (parent && parentWidth && parentHeight) {
-                const itemWidth = item.width || registryItem.defaultSize.width;
-                const itemHeight = item.height || registryItem.defaultSize.height;
-
                 newX = Math.max(0, Math.min(newX, parentWidth - itemWidth));
                 newY = Math.max(0, Math.min(newY, parentHeight - itemHeight));
+            } else {
+                // Constrain to drop zone left, right, top bounds
+                const canvasRect = canvasRef.current.getBoundingClientRect();
+                newY = Math.max(0, newY);
+                newX = Math.max(0, Math.min(newX, canvasRect.width - itemWidth));
             }
 
             updateItem(item.id, {
@@ -153,14 +156,14 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                 {/* Resize handles */}
                 {item.isSelected && (
                     <>
-                        <ResizeHandle dir="n" item={item} updateItem={updateItem} />
-                        <ResizeHandle dir="s" item={item} updateItem={updateItem} />
-                        <ResizeHandle dir="e" item={item} updateItem={updateItem} />
-                        <ResizeHandle dir="w" item={item} updateItem={updateItem} />
-                        <ResizeHandle dir="ne" item={item} updateItem={updateItem} />
-                        <ResizeHandle dir="nw" item={item} updateItem={updateItem} />
-                        <ResizeHandle dir="se" item={item} updateItem={updateItem} />
-                        <ResizeHandle dir="sw" item={item} updateItem={updateItem} />
+                        <ResizeHandle dir="n" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
+                        <ResizeHandle dir="s" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
+                        <ResizeHandle dir="e" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
+                        <ResizeHandle dir="w" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
+                        <ResizeHandle dir="ne" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
+                        <ResizeHandle dir="nw" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
+                        <ResizeHandle dir="se" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
+                        <ResizeHandle dir="sw" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
                     </>
                 )}
             </div>
