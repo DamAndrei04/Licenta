@@ -5,6 +5,11 @@ import "./DroppedItem.css";
 import { useDrop } from "react-dnd";
 
 const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateItem, selectedId, canvasRef }) => {
+
+    console.log(` DroppedItem [${item.type}-${item.id}] RENDER`, {
+        isSelected: item.id === selectedId
+    });
+
     const interactionRef = useRef(null);
 
     const registryItem = ComponentRegistry[item.type];

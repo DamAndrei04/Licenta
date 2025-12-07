@@ -1,79 +1,76 @@
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useState } from 'react';
 import './workspace.css';
 
 import Toolbar from './components/toolbar/Toolbar';
 import PagesAndLayersTab from './components/pagesAndLayersTab/PagesAndLayersTab';
 import CustomizeTab from './components/customizeTab/CustomizeTab';
 import DropZone from './components/dropZone/DropZone';
+import useBuilderStore from '@/store/useBuilderStore';
+import {useEffect, useMemo} from "react";
 
 export default function Main() {
-    const [droppedItems, setDroppedItems] = useState([]);
-    const [selectedId, setSelectedId] = useState(null);
+    console.log(' workspace.jsx RENDER');
+    // Use selectors to only subscribe to specific pieces of state
+    const selectedId = useBuilderStore((state) => state.selectedId);
+    const droppedItems = useBuilderStore((state) => state.droppedItems);
 
-    const handleDrop = (item, x, y, parentId = null) => {
-        const newItem = {
-            id: `${item.componentType}-${Date.now()}`,
-            type: item.componentType,  // store component type from registry
-            x: parentId ? x : x, // relative x to parent
-            y: parentId ? y : y, // relative y to parent
-            width: item.defaultSize?.width || 100,  // add default width
-            height: item.defaultSize?.height || 40, // add default height
-            parentId: parentId,
-            children: [],
-            props: {},
-        };
+    console.log(' State:', {
+        itemCount: droppedItems.length,
+        selectedId
+    });
 
-        setDroppedItems(prev => {
-            const updated = [...prev, newItem];
+    // Get actions
+    const handleDrop = useBuilderStore((state) => state.handleDrop);
+    const updateItem = useBuilderStore((state) => state.updateItem);
+    const selectItem = useBuilderStore((state) => state.selectItem);
+    const deselectAll = useBuilderStore((state) => state.deselectAll);
+    const moveItem = useBuilderStore((state) => state.moveItem);
+    const handleClear = useBuilderStore((state) => state.handleClear);
 
-            // if dropped into a parent, add to parent's children
-            if (parentId) {
-                return updated.map(el =>
-                    el.id === parentId
-                        ? { ...el, children: [...el.children, newItem.id] }
-                        : el
-                );
+    // Helper function that accesses current store state
+    const getChildren = (parentId) => {
+        return droppedItems.filter(item => item.parentId === parentId);
+    };
+
+    // Derive values
+    const rootItems = useMemo(
+        () => droppedItems.filter(item => !item.parentId),
+        [droppedItems]
+    );
+
+    const selectedElement = useMemo(
+        () => droppedItems.find(item => item.id === selectedId),
+        [droppedItems, selectedId]
+    );
+    console.log(' State:', {
+        itemCount: droppedItems.length,
+        selectedId
+    });
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Prevent shortcuts when typing in input fields
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
             }
 
-            return updated;
-        });
-    };
+            // Ctrl+Z = Undo
+            if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                useBuilderStore.temporal.getState().undo();
+            }
 
-    const updateItem = (id, updates) => {
-        setDroppedItems(prev =>
-            prev.map(item => (item.id === id ? { ...item, ...updates } : item))
-        );
-    };
+            // Ctrl+Y = Redo
+            if (e.ctrlKey  && e.key === 'y' ) {
+                e.preventDefault();
+                useBuilderStore.temporal.getState().redo();
+            }
+        };
 
-    const selectItem = (id) => {
-        setSelectedId(id);
-    };
-
-    const selectedElement = droppedItems.find(item => item.id === selectedId);
-
-    const deselectAll = () => {
-        setSelectedId(null);
-    };
-
-    const moveItem = (id, x, y) => {
-        setDroppedItems(prev =>
-            prev.map(el => (el.id === id ? { ...el, x, y } : el))
-        );
-    };
-
-    const handleClear = () => {
-        if (window.confirm('Are you sure you want to clear the whiteboard?')) {
-            setDroppedItems([]);
-            setSelectedId(null);
-        }
-    };
-
-    const getRootItems = () => droppedItems.filter(item => !item.parentId);
-
-    const getChildren = (parentId) =>
-        droppedItems.filter(item => item.parentId === parentId);
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     return (
         <DndProvider backend={HTML5Backend}>
@@ -83,7 +80,7 @@ export default function Main() {
                     <div className="gridContainer">
                         <PagesAndLayersTab />
                         <DropZone
-                            droppedItems={getRootItems()} // only pass root item ( parentId = null )
+                            droppedItems={rootItems} // only pass root item ( parentId = null )
                             allItems={droppedItems} // pass all items
                             getChildren={getChildren}
                             onDrop={handleDrop}
