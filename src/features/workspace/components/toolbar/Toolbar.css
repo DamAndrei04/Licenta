@@ -1,40 +1,75 @@
 .toolbar {
-    background-color: #f0f0f0;
-    padding: 1rem;
+    background-color: #f8f9fa;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid #ddd;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 1rem;
 }
 
 .toolbar h2 {
-    margin: 0 0 1rem 0;
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    flex-basis: 100%;
+}
+
+.toolbar-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    flex-grow: 1;
+}
+
+button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+button:hover {
+    transform: translateY(-1px);
 }
 
 .clear-button {
-    background: #f44336;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 1rem;
-    width: 100px;
-    align-items: end;
+    background-color: #f44336;
+    color: #fff;
 }
 
 .clear-button:hover {
-    background: #d32f2f;
+    background-color: #d32f2f;
 }
 
-.export-button{
-    justify-content: flex-end;
-    margin-top: 1rem;
-    margin-left: auto;
-    background-color: green;
-    color: white;
-    width: 100px;
+.export-button {
+    background-color: #4caf50;
+    color: #fff;
 }
-.export-button:hover{
-    background: lightgreen;
+
+.export-button:hover {
+    background-color: #45a049;
+}
+
+.undo-button {
+    background-color: #1976d2;
+    color: #fff;
+}
+
+.undo-button:hover {
+    background-color: #1565c0;
+}
+
+.redo-button {
+    background-color: #ff9800;
+    color: #fff;
+}
+
+.redo-button:hover {
+    background-color: #fb8c00;
 }

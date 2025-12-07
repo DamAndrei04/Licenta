@@ -1,10 +1,14 @@
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { useState, useEffect } from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import { AlignStartVertical, AlignCenterVertical, AlignEndVertical, Move } from 'lucide-react';
 import './Layout.css';
 
 
 const Layout = ({ selectedElement, allItems, updateItem }) => {
+
+    console.log('Layout RENDER', {
+        selectedId: selectedElement?.id
+    });
 
     const [ width, setWidth ] = useState(selectedElement?.width || '');
     const [ height, setHeight ] = useState(selectedElement?.height || '');
@@ -17,7 +21,7 @@ const Layout = ({ selectedElement, allItems, updateItem }) => {
         setAlignment(actualAlignment);
     }, [selectedElement])
 
-    const calculateAlignment = () => {
+    const calculateAlignment = useCallback(() => {
         if (!selectedElement) return 'custom';
 
         let containerWidth;
@@ -46,7 +50,7 @@ const Layout = ({ selectedElement, allItems, updateItem }) => {
         if (Math.abs(currentX - rightX) < tolerance) return 'right';
 
         return 'custom';
-    };
+    }, [selectedElement, allItems]);
 
     const updateAlignment = (type) => {
         if (!selectedElement) return;
