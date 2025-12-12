@@ -13,8 +13,8 @@ const useBuilderStore = create(
                 const newItem = {
                     id: `${item.componentType}-${Date.now()}`,
                     type: item.componentType,
-                    x: parentId ? x : x,
-                    y: parentId ? y : y,
+                    x,
+                    y,
                     width: item.defaultSize?.width || 100,
                     height: item.defaultSize?.height || 40,
                     parentId: parentId,
@@ -41,9 +41,23 @@ const useBuilderStore = create(
 
             updateItem: (id, updates) => {
                 set((state) => ({
-                    droppedItems: state.droppedItems.map(item =>
-                        item.id === id ? { ...item, ...updates } : item
-                    )
+                    droppedItems: state.droppedItems.map(item => {
+                        if (item.id !== id) return item;
+
+                        return {
+                            ...item,
+                            ...updates,
+                            props: {
+                                ...item.props,
+                                ...(updates.props || {}),
+                                style: {
+                                    ...item.props?.style,
+                                    ...(updates.props?.style || {})
+                                }
+                            }
+                        };
+                        //item.id === id ? { ...item, ...updates } : item
+                    })
                 }));
             },
 
