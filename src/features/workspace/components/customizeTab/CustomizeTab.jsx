@@ -1,5 +1,6 @@
 import './CustomizeTab.css';
 import Layout from './layout/Layout';
+import Padding from "@/features/workspace/components/customizeTab/padding/Padding";
 
 const CustomizeTab = ({ selectedElement, allItems, updateItem, setSelectedElement }) => {
     console.log(' CustomizeTab RENDER', {
@@ -13,6 +14,10 @@ const CustomizeTab = ({ selectedElement, allItems, updateItem, setSelectedElemen
                 allItems={allItems}
                 updateItem={updateItem}
                 setSelectedElement={setSelectedElement}
+            />
+            <Padding
+                updateItem={updateItem}
+                selectedElement={selectedElement}
             />
         </div>
     );

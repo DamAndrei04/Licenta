@@ -125,9 +125,15 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                 {/* Component wrapper */}
                 {canHaveChildren ? (
                     // Container component with children
-                    <div className="component-content" style={{ width: '100%', height: '100%', position: 'relative' }}>
+                    <div className="component-content"
+                         style={{
+                            width: '100%',
+                            height: '100%',
+                            position: 'relative',
+                             ...(mergedProps.style || {})
+                        }}
+                    >
                         <Component {...mergedProps} />
-
                         {/* Render nested children */}
                         {children.map((child) => (
                             <DroppedItem
@@ -153,7 +159,7 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                             width: '100%',
                             height: '100%',
                             boxSizing: 'border-box',
-                            ...(mergedProps.style || {})
+                            ...(mergedProps.style || {}),
                         }}
                     />
                 )}
