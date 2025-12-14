@@ -1,0 +1,27 @@
+.background-color {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.open-color-picker {
+    min-width: 80px;
+}
+
+.react-colorful {
+    width: 100% !important;
+}
+
+.react-colorful__saturation {
+    border-radius: 4px 4px 0 0;
+}
+
+.react-colorful__hue,
+.react-colorful__alpha {
+    border-radius: 4px;
+}
+
+.apply-btn {
+    margin-top: 10px;
+}

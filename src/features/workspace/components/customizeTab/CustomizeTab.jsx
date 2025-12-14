@@ -1,6 +1,9 @@
 import './CustomizeTab.css';
 import Layout from './layout/Layout';
 import Padding from "@/features/workspace/components/customizeTab/padding/Padding";
+import Background from "@/features/workspace/components/customizeTab/background/Background";
+import Border from "@/features/workspace/components/customizeTab/border/Border";
+import Typography from "@/features/workspace/components/customizeTab/typography/Typography";
 
 const CustomizeTab = ({ selectedElement, allItems, updateItem, setSelectedElement }) => {
     console.log(' CustomizeTab RENDER', {
@@ -16,6 +19,18 @@ const CustomizeTab = ({ selectedElement, allItems, updateItem, setSelectedElemen
                 setSelectedElement={setSelectedElement}
             />
             <Padding
+                updateItem={updateItem}
+                selectedElement={selectedElement}
+            />
+            <Background
+                updateItem={updateItem}
+                selectedElement={selectedElement}
+            />
+            <Border
+                updateItem={updateItem}
+                selectedElement={selectedElement}
+            />
+            <Typography
                 updateItem={updateItem}
                 selectedElement={selectedElement}
             />
