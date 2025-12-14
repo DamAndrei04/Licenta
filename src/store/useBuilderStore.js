@@ -5,60 +5,78 @@ const useBuilderStore = create(
     temporal(
         (set, get) => ({
             // State
-            droppedItems: [],
+            droppedItems: {},
+            rootIds: [],
             selectedId: null,
 
             // Actions
             handleDrop: (item, x, y, parentId = null) => {
+                const newId = `${item.componentType}-${Date.now()}`;
                 const newItem = {
-                    id: `${item.componentType}-${Date.now()}`,
+                    id: newId,
                     type: item.componentType,
-                    x,
-                    y,
-                    width: item.defaultSize?.width || 100,
-                    height: item.defaultSize?.height || 40,
+                    layout: {
+                        x,
+                        y,
+                        width: item.defaultSize?.width || 100,
+                        height: item.defaultSize?.height || 40
+                    },
                     parentId: parentId,
-                    children: [],
+                    childrenIds: [],
                     props: {},
                 };
 
                 set((state) => {
-                    const updated = [...state.droppedItems, newItem];
+                    const updatedDroppedItems = {
+                        ...state.droppedItems,
+                        [newId]: newItem
+                    };
 
-                    if (parentId) {
-                        return {
-                            droppedItems: updated.map(el =>
-                                el.id === parentId
-                                    ? { ...el, children: [...el.children, newItem.id] }
-                                    : el
-                            )
+                    if (parentId && state.droppedItems[parentId]) {
+                        updatedDroppedItems[parentId] = {
+                            ...state.droppedItems[parentId],
+                            childrenIds: [...state.droppedItems[parentId].childrenIds, newId]
                         };
                     }
 
-                    return { droppedItems: updated };
+                    const updatedRootItems = parentId
+                        ? state.rootIds
+                        : [...state.rootIds, newId];
+
+                    return {
+                        droppedItems: updatedDroppedItems,
+                        rootIds: updatedRootItems
+                    };
                 });
             },
 
             updateItem: (id, updates) => {
-                set((state) => ({
-                    droppedItems: state.droppedItems.map(item => {
-                        if (item.id !== id) return item;
+                set((state) => {
+                    const item = state.droppedItems[id];
+                    if (!item) return state;
 
-                        return {
-                            ...item,
-                            ...updates,
-                            props: {
-                                ...item.props,
-                                ...(updates.props || {}),
-                                style: {
-                                    ...item.props?.style,
-                                    ...(updates.props?.style || {})
+                    return {
+                        droppedItems: {
+                            ...state.droppedItems,
+                            [id]: {
+                                ...item,
+                                ...updates,
+                                layout:{
+                                  ...item.layout,
+                                  ...(updates.layout || {})
+                                },
+                                props: {
+                                    ...item.props,
+                                    ...(updates.props || {}),
+                                    style: {
+                                        ...item.props?.style,
+                                        ...(updates.props?.style || {}),
+                                    }
                                 }
                             }
-                        };
-                        //item.id === id ? { ...item, ...updates } : item
-                    })
-                }));
+                        }
+                    };
+                });
             },
 
             selectItem: (id) => {
@@ -79,7 +97,7 @@ const useBuilderStore = create(
 
             handleClear: () => {
                 if (window.confirm('Are you sure you want to clear the whiteboard?')) {
-                    set({ droppedItems: [], selectedId: null });
+                    set({ droppedItems: {}, rootIds: [], selectedId: null });
                 }
             },
 
@@ -96,12 +114,13 @@ const useBuilderStore = create(
             },
 
             getChildren: (parentId) => {
-                return get().droppedItems.filter(item => item.parentId === parentId);
+                const parent = get().droppedItems[parentId];
+                return parent ? parent.childrenIds.map(childrenId => get().droppedItems[childrenId]) : [];
             },
 
             getSelectedElement: () => {
                 const { droppedItems, selectedId } = get();
-                return droppedItems.find(item => item.id === selectedId);
+                return droppedItems[selectedId];
             },
         }),
         {

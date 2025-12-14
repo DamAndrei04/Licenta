@@ -1,0 +1,34 @@
+.node {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0.5rem;
+}
+
+.node-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 2px 4px;
+}
+
+.node-item.selected {
+    background-color: #e0e0e0;
+}
+
+.node-children {
+    display: flex;
+    flex-direction: column;
+}
+
+.toggle-btn {
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    font-weight: bold;
+    padding: 0 4px;
+}
+
+.node-label {
+    font-size: 14px;
+}
