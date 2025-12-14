@@ -36,7 +36,6 @@ const Padding = ({ selectedElement, updateItem }) => {
         setPadding(parseSides(style.padding));
     }, [selectedElement]);
 
-
     const updatePaddingInput = (side, value) => {
         setPadding((prev) => ({ ...prev, [side]: value }));
     };

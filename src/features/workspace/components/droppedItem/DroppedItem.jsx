@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import {useRef} from "react";
 import { ComponentRegistry } from "@/components/registry/ComponentRegistry";
 import ResizeHandle from "../resizeHandlers/ResizeHandle";
 import "./DroppedItem.css";
@@ -114,6 +114,7 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                 top: item.y,
                 width: item.width || registryItem.defaultSize.width,
                 height: item.height || registryItem.defaultSize.height,
+                border: 'none',
             }}
         >
             <div
