@@ -10,16 +10,9 @@ const Layout = ({ selectedElement, allItems, updateItem }) => {
         selectedId: selectedElement?.id
     });
 
-    const [ width, setWidth ] = useState(selectedElement?.width || '');
-    const [ height, setHeight ] = useState(selectedElement?.height || '');
+    const [ width, setWidth ] = useState(selectedElement?.layout.width || '');
+    const [ height, setHeight ] = useState(selectedElement?.layout.height || '');
     const [ alignment, setAlignment ] = useState(selectedElement?.alignment || 'left');
-
-    useEffect(() => {
-        setWidth(selectedElement?.width || 0);
-        setHeight(selectedElement?.height || 0);
-        const actualAlignment = calculateAlignment();
-        setAlignment(actualAlignment);
-    }, [selectedElement])
 
     const calculateAlignment = useCallback(() => {
         if (!selectedElement) return 'custom';
@@ -27,17 +20,17 @@ const Layout = ({ selectedElement, allItems, updateItem }) => {
         let containerWidth;
 
         if (selectedElement.parentId) {
-            const parent = allItems.find(item => item.id === selectedElement.parentId);
+            const parent = allItems[selectedElement.parentId];
             if (!parent) return 'custom';
-            containerWidth = parent.width || 100;
+            containerWidth = parent.layout.width || 100;
         } else {
             const canvas = document.querySelector(".whiteboard");
             if (!canvas) return 'custom';
             containerWidth = canvas.offsetWidth;
         }
 
-        const itemWidth = selectedElement.width || 100;
-        const currentX = selectedElement.x || 0;
+        const itemWidth = selectedElement.layout.width || 100;
+        const currentX = selectedElement.layout.x || 0;
 
         const leftX = 0;
         const centerX = (containerWidth - itemWidth) / 2;
@@ -52,31 +45,44 @@ const Layout = ({ selectedElement, allItems, updateItem }) => {
         return 'custom';
     }, [selectedElement, allItems]);
 
+    useEffect(() => {
+        setWidth(selectedElement?.layout.width || 0);
+        setHeight(selectedElement?.layout.height || 0);
+        const actualAlignment = calculateAlignment();
+        setAlignment(actualAlignment);
+    }, [selectedElement, calculateAlignment]);
+
     const updateAlignment = (type) => {
         if (!selectedElement) return;
         let containerWidth;
 
         if(selectedElement.parentId){
-            const parent = allItems.find(item => item.id === selectedElement.parentId);
-            containerWidth = parent.width || 100;
+            const parent = allItems[selectedElement.parentId];
+            containerWidth = parent.layout.width || 100;
         } else {
             const canvas = document.querySelector(".whiteboard");
             if (!canvas) return;
             containerWidth = canvas.offsetWidth;
         }
 
-        const itemWidth = selectedElement.width || 100;
+        const itemWidth = selectedElement.layout.width || 100;
 
-        let newX = selectedElement.x || 0;
+        let newX = selectedElement.layout.x || 0;
         if (type === "left") newX = 0;
         if (type === "center") newX = (containerWidth - itemWidth) / 2;
         if (type === "right") newX = containerWidth - itemWidth;
 
         console.log("Before update:", selectedElement);
         console.log("New X:", newX);
-        console.log("Calling updateItem with:", selectedElement.id, { x: newX, alignment: type });
+        console.log("Calling updateItem with:", selectedElement.id, { layout: { x: newX }, alignment: type });
 
-        updateItem(selectedElement.id, { x: newX, alignment: type });
+        updateItem(selectedElement.id, {
+            layout: {
+                ...selectedElement.layout,
+                x: newX
+            },
+            alignment: type
+        });
     };
 
     const handleAlignment = (type) => {
@@ -98,9 +104,14 @@ const Layout = ({ selectedElement, allItems, updateItem }) => {
         if (!selectedElement) return;
         const newWidth = Number(width);
         if (newWidth > 0) {
-            updateItem(selectedElement.id, { width: newWidth });
+            updateItem(selectedElement.id, {
+                layout: {
+                    ...selectedElement.layout,
+                    width: newWidth,
+                },
+            });
         } else {
-            setWidth(selectedElement.width || 0);
+            setWidth(selectedElement.layout.width || 0);
         }
     };
 
@@ -108,9 +119,14 @@ const Layout = ({ selectedElement, allItems, updateItem }) => {
         if (!selectedElement) return;
         const newHeight = Number(height);
         if (newHeight > 0) {
-            updateItem(selectedElement.id, { height: newHeight });
+            updateItem(selectedElement.id, {
+                layout: {
+                    ...selectedElement.layout,
+                    height: newHeight
+                }
+            });
         } else {
-            setHeight(selectedElement.height || 0);
+            setHeight(selectedElement.layout.height || 0);
         }
     };
 

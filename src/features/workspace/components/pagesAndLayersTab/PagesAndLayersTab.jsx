@@ -1,9 +1,16 @@
 import './PagesAndLayersTab.css';
+import useBuilderStore from "@/store/useBuilderStore";
+import ComponentsTree from "./ComponentsTree";
 
 const PagesAndLayersTab = () => {
+    const rootIds = useBuilderStore(state => state.rootIds);
+
     return (
-        <div className="pagesAndLayersTab">
-            <h2>PAGES AND LAYERS</h2>
+        <div>
+            <label>PAGES AND LAYERS</label>
+            {rootIds.map(rootId => (
+                <ComponentsTree key={rootId} nodeId={rootId} />
+            ))}
         </div>
     );
 };

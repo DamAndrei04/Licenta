@@ -14,7 +14,7 @@ export default function Main() {
     // Use selectors to only subscribe to specific pieces of state
     const selectedId = useBuilderStore((state) => state.selectedId);
     const droppedItems = useBuilderStore((state) => state.droppedItems);
-
+    const rootIds = useBuilderStore((state) => state.rootIds);
     console.log(' State:', {
         itemCount: droppedItems.length,
         selectedId
@@ -30,17 +30,18 @@ export default function Main() {
 
     // Helper function that accesses current store state
     const getChildren = (parentId) => {
-        return droppedItems.filter(item => item.parentId === parentId);
+        const parent = droppedItems[parentId];
+        return parent ? parent.childrenIds.map(childrenId => droppedItems[childrenId]) : [];
     };
 
     // Derive values
     const rootItems = useMemo(
-        () => droppedItems.filter(item => !item.parentId),
-        [droppedItems]
+        () => rootIds.map(id => droppedItems[id]),
+        [droppedItems, rootIds]
     );
 
     const selectedElement = useMemo(
-        () => droppedItems.find(item => item.id === selectedId),
+        () => selectedId ? droppedItems[selectedId] : null,
         [droppedItems, selectedId]
     );
     console.log(' State:', {
@@ -50,18 +51,15 @@ export default function Main() {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // Prevent shortcuts when typing in input fields
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
                 return;
             }
 
-            // Ctrl+Z = Undo
             if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
                 e.preventDefault();
                 useBuilderStore.temporal.getState().undo();
             }
 
-            // Ctrl+Y = Redo
             if (e.ctrlKey  && e.key === 'y' ) {
                 e.preventDefault();
                 useBuilderStore.temporal.getState().redo();

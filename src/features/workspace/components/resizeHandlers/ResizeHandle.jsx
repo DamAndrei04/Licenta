@@ -8,11 +8,11 @@ function ResizeHandle({ dir, item, updateItem, canvasRef, parentWidth, parentHei
         const startX = e.clientX;
         const startY = e.clientY;
 
-        const startW = item.width;
-        const startH = item.height;
+        const startW = item.layout.width;
+        const startH = item.layout.height;
 
-        const startLeft = item.x;
-        const startTop = item.y;
+        const startLeft = item.layout.x;
+        const startTop = item.layout.y;
 
         const minWidth = 40;
         const minHeight = 30;
@@ -30,11 +30,9 @@ function ResizeHandle({ dir, item, updateItem, canvasRef, parentWidth, parentHei
             let maxWidth, maxHeight;
 
             if (parentWidth !== null && parentHeight !== null) {
-                // nested item use parent bounds
                 maxWidth = parentWidth - startLeft;
                 maxHeight = parentHeight - startTop;
             } else if (canvasRef?.current) {
-                // root items use canvas bounds
                 const canvasRect = canvasRef.current.getBoundingClientRect();
                 maxWidth = canvasRect.width - startLeft;
                 maxHeight = canvasRect.height - startTop;
@@ -59,7 +57,16 @@ function ResizeHandle({ dir, item, updateItem, canvasRef, parentWidth, parentHei
                 y = Math.max(0, y);
             }
 
-            updateItem(item.id, { width: w, height: h, x, y });
+            updateItem(item.id, {
+                layout: {
+                    width: w,
+                    height: h,
+                    x,
+                    y
+                }
+            });
+
+
         };
 
         const onUp = () => {

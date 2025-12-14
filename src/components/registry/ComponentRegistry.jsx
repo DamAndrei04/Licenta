@@ -37,9 +37,7 @@ export const ComponentRegistry = {
 
     card: {
         component: Card,
-        defaultProps: {
-            children: 'Card content',
-        },
+        defaultProps: {},
         defaultSize: {
             width: 300,
             height: 200

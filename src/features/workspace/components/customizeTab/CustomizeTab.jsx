@@ -9,6 +9,18 @@ const CustomizeTab = ({ selectedElement, allItems, updateItem, setSelectedElemen
     console.log(' CustomizeTab RENDER', {
         hasSelection: !!selectedElement
     });
+
+    if (!selectedElement) {
+        return (
+            <div className="customizeTab-empty">
+                <h2>CUSTOMIZE</h2>
+                <div className="empty-state">
+                    Please select a component to edit it
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="customizeTab">
             <h2>CUSTOMIZE</h2>

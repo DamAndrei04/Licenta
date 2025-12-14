@@ -18,13 +18,13 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
     const canHaveChildren = registryItem.canHaveChildren || false;
     const children = getChildren(item.id);
 
-    const parent = item.parentId ? allItems.find(p => p.id === item.parentId) : null;
-    const parentWidth = parent ? (parent.width || ComponentRegistry[parent.type]?.defaultSize.width) : null;
-    const parentHeight = parent ? (parent.height || ComponentRegistry[parent.type]?.defaultSize.height) : null;
+    const parent = item.parentId ? allItems[item.parentId] : null;
+    const parentWidth = parent ? (parent.layout.width || ComponentRegistry[parent.type]?.defaultSize.width) : null;
+    const parentHeight = parent ? (parent.layout.height || ComponentRegistry[parent.type]?.defaultSize.height) : null;
 
     const [{ isOver }, drop] = useDrop(() => ({
         accept: ["COMPONENT", "DROPPED_ITEM"],
-        canDrop: () => canHaveChildren, // Only allow drops if component accepts children
+        canDrop: () => canHaveChildren,
         drop: (draggedItem, monitor) => {
             if (monitor.didDrop()) {
                 return;
@@ -33,28 +33,27 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
             const offset = monitor.getClientOffset();
             const containerRect = interactionRef.current.getBoundingClientRect();
 
-            // Calculate position relative to this container
             const x = offset.x - containerRect.left;
             const y = offset.y - containerRect.top;
 
             if (draggedItem.id) {
-                // Moving existing item into this container
                 updateItem(draggedItem.id, {
-                    x,
-                    y,
+                    layout: {
+                        ...allItems[draggedItem.id].layout,
+                        x,
+                        y
+                    },
                     parentId: item.id
                 });
             } else {
-                // Adding new item as child
                 onDrop(draggedItem, x, y, item.id);
             }
         },
         collect: (monitor) => ({
             isOver: monitor.isOver({ shallow: true }),
         }),
-    }), [item.id, canHaveChildren]);
+    }), [item.id, canHaveChildren, allItems]);
 
-    // DRAGGING LOGIC
     const startDrag = (e) => {
 
         e.stopPropagation();
@@ -62,31 +61,35 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
 
         const startX = e.clientX;
         const startY = e.clientY;
-        const startLeft = item.x;
-        const startTop = item.y;
+        const startLeft = item.layout.x;
+        const startTop = item.layout.y;
 
 
         const onMove = (ev) => {
             let newX = startLeft + ev.clientX - startX;
             let newY = startTop + ev.clientY - startY;
 
-            const itemWidth = item.width || registryItem.defaultSize.width;
-            const itemHeight = item.height || registryItem.defaultSize.height;
+            const itemWidth = item.layout.width || registryItem.defaultSize.width;
+            const itemHeight = item.layout.height || registryItem.defaultSize.height;
 
-            // Constrain to parent bounds if nested
             if (parent && parentWidth && parentHeight) {
                 newX = Math.max(0, Math.min(newX, parentWidth - itemWidth));
                 newY = Math.max(0, Math.min(newY, parentHeight - itemHeight));
-            } else {
-                // Constrain to drop zone left, right, top bounds
+            } else if (canvasRef.current) {
                 const canvasRect = canvasRef.current.getBoundingClientRect();
                 newY = Math.max(0, newY);
                 newX = Math.max(0, Math.min(newX, canvasRect.width - itemWidth));
+            } else {
+                newY = Math.max(0, newY);
+                newX = Math.max(0, newX);
             }
 
             updateItem(item.id, {
-                x: newX,
-                y: newY,
+                layout: {
+                    ...item.layout,
+                    x: newX,
+                    y: newY,
+                }
             });
         };
 
@@ -110,10 +113,10 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
             className="layout-container"
             style={{
                 position: "absolute",
-                left: item.x,
-                top: item.y,
-                width: item.width || registryItem.defaultSize.width,
-                height: item.height || registryItem.defaultSize.height,
+                left: item.layout.x,
+                top: item.layout.y,
+                width: item.layout.width || registryItem.defaultSize.width,
+                height: item.layout.height || registryItem.defaultSize.height,
                 border: 'none',
             }}
         >
@@ -123,9 +126,7 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                 className={`interaction-layer ${item.isSelected ? "selected" : ""} ${isOver && canHaveChildren ? "drop-target" : ""}`}
                 style={{ width: "100%", height: "100%", position: "relative" }}
             >
-                {/* Component wrapper */}
                 {canHaveChildren ? (
-                    // Container component with children
                     <div className="component-content"
                          style={{
                             width: '100%',
@@ -135,7 +136,6 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                         }}
                     >
                         <Component {...mergedProps} />
-                        {/* Render nested children */}
                         {children.map((child) => (
                             <DroppedItem
                                 key={child.id}
@@ -153,7 +153,6 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                         ))}
                     </div>
                 ) : (
-                    // Regular component without children
                     <Component
                         {...mergedProps}
                         style={{
@@ -165,7 +164,6 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                     />
                 )}
 
-                {/* Resize handles */}
                 {item.isSelected && (
                     <>
                         <ResizeHandle dir="n" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
