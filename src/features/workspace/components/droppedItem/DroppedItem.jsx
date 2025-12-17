@@ -1,4 +1,4 @@
-import {useRef} from "react";
+import { useRef , useState } from "react";
 import { ComponentRegistry } from "@/components/registry/ComponentRegistry";
 import ResizeHandle from "../resizeHandlers/ResizeHandle";
 import "./DroppedItem.css";
@@ -54,6 +54,16 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
         }),
     }), [item.id, canHaveChildren, allItems]);
 
+    const dragPosRef = useRef({
+        x: item.layout.x,
+        y: item.layout.y,
+    });
+
+    const [previewPos, setPreviewPos] = useState(null);
+
+    const renderX = previewPos?.x ?? item.layout.x;
+    const renderY = previewPos?.y ?? item.layout.y;
+
     const startDrag = (e) => {
 
         e.stopPropagation();
@@ -63,7 +73,6 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
         const startY = e.clientY;
         const startLeft = item.layout.x;
         const startTop = item.layout.y;
-
 
         const onMove = (ev) => {
             let newX = startLeft + ev.clientX - startX;
@@ -84,18 +93,25 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                 newX = Math.max(0, newX);
             }
 
-            updateItem(item.id, {
-                layout: {
-                    ...item.layout,
-                    x: newX,
-                    y: newY,
-                }
-            });
+            dragPosRef.current = { x: newX, y: newY };
+            setPreviewPos({ x: newX, y: newY });
         };
 
         const onUp = () => {
             window.removeEventListener("mousemove", onMove);
             window.removeEventListener("mouseup", onUp);
+
+            const { x, y } = dragPosRef.current;
+
+            updateItem(item.id, {
+                layout: {
+                    ...item.layout,
+                    x,
+                    y,
+                }
+            });
+
+            setPreviewPos(null);
         };
 
         window.addEventListener("mousemove", onMove);
@@ -109,15 +125,30 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
 
     const isSelected = item.id === selectedId;
 
+    const [previewLayout, setPreviewLayout] = useState(null);
+    const renderLayout = {
+        x: previewLayout?.x ?? renderX,
+        y: previewLayout?.y ?? renderY,
+        width:
+            previewLayout?.width ??
+            item.layout.width ??
+            registryItem.defaultSize.width,
+        height:
+            previewLayout?.height ??
+            item.layout.height ??
+            registryItem.defaultSize.height,
+    };
+
+
     return (
         <div
             className="layout-container"
             style={{
                 position: "absolute",
-                left: item.layout.x,
-                top: item.layout.y,
-                width: item.layout.width || registryItem.defaultSize.width,
-                height: item.layout.height || registryItem.defaultSize.height,
+                left: renderX,
+                top: renderY,
+                width: renderLayout.width,
+                height: renderLayout.height,
                 border: 'none',
             }}
         >
@@ -165,14 +196,14 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
 
                 {isSelected && (
                     <>
-                        <ResizeHandle dir="n" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
-                        <ResizeHandle dir="s" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
-                        <ResizeHandle dir="e" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
-                        <ResizeHandle dir="w" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
-                        <ResizeHandle dir="ne" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
-                        <ResizeHandle dir="nw" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
-                        <ResizeHandle dir="se" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
-                        <ResizeHandle dir="sw" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
+                        <ResizeHandle dir="n" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight} onPreview={setPreviewLayout} />
+                        <ResizeHandle dir="s" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight} onPreview={setPreviewLayout} />
+                        <ResizeHandle dir="e" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight} onPreview={setPreviewLayout} />
+                        <ResizeHandle dir="w" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight} onPreview={setPreviewLayout} />
+                        <ResizeHandle dir="ne" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight} onPreview={setPreviewLayout} />
+                        <ResizeHandle dir="nw" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight} onPreview={setPreviewLayout} />
+                        <ResizeHandle dir="se" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight} onPreview={setPreviewLayout} />
+                        <ResizeHandle dir="sw" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight} onPreview={setPreviewLayout} />
                     </>
                 )}
             </div>
