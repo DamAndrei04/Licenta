@@ -4,6 +4,7 @@ import Padding from "@/features/workspace/components/customizeTab/padding/Paddin
 import Background from "@/features/workspace/components/customizeTab/background/Background";
 import Border from "@/features/workspace/components/customizeTab/border/Border";
 import Typography from "@/features/workspace/components/customizeTab/typography/Typography";
+import { ComponentRegistry } from "@/components/registry/ComponentRegistry";
 
 const CustomizeTab = ({ selectedElement, allItems, updateItem, setSelectedElement }) => {
     console.log(' CustomizeTab RENDER', {
@@ -42,10 +43,12 @@ const CustomizeTab = ({ selectedElement, allItems, updateItem, setSelectedElemen
                 updateItem={updateItem}
                 selectedElement={selectedElement}
             />
+            {!(ComponentRegistry[selectedElement.type]?.canHaveChildren) && (
             <Typography
                 updateItem={updateItem}
                 selectedElement={selectedElement}
             />
+            )}
         </div>
     );
 };

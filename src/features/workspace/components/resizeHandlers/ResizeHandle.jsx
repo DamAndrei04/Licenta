@@ -1,6 +1,15 @@
 import "./ResizeHandle.css"
+import {useRef} from "react";
 
-function ResizeHandle({ dir, item, updateItem, canvasRef, parentWidth, parentHeight }) {
+function ResizeHandle({ dir, item, updateItem, canvasRef, parentWidth, parentHeight, onPreview }) {
+
+    const resizeRef = useRef({
+        width: item.layout.width,
+        height: item.layout.height,
+        x: item.layout.x,
+        y: item.layout.y,
+    });
+
     const startResize = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -57,21 +66,26 @@ function ResizeHandle({ dir, item, updateItem, canvasRef, parentWidth, parentHei
                 y = Math.max(0, y);
             }
 
-            updateItem(item.id, {
-                layout: {
-                    width: w,
-                    height: h,
-                    x,
-                    y
-                }
-            });
+            resizeRef.current = { width: w, height: h, x, y };
 
-
+            onPreview(resizeRef.current);
         };
 
         const onUp = () => {
             window.removeEventListener("mousemove", onMove);
             window.removeEventListener("mouseup", onUp);
+
+            const { width, height, x, y } = resizeRef.current;
+
+            updateItem(item.id, {
+                layout: {
+                    width,
+                    height,
+                    x,
+                    y
+                }
+            });
+            onPreview(null);
         };
 
         window.addEventListener("mousemove", onMove);
