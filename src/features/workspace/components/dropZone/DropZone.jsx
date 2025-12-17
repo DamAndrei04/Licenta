@@ -62,7 +62,7 @@ const DropZone = ({
             ref={attachRefs}
             onClick={handleCanvasClick}
         >
-            {droppedItems.map((item) => (
+            {Object.values(droppedItems).map((item) => (
                 <DroppedItem
                     key={item.id}
                     item={{

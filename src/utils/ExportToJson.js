@@ -2,13 +2,22 @@ import useBuilderStore from '@/store/useBuilderStore';
 
 export const exportToJSON = () => {
     const state = useBuilderStore.getState();
+    const { pages, activePageId } = state;
 
     const exportData = {
         version: '1.0',
         exportedAt: new Date().toISOString(),
-        canvas: {
-            droppedItems: state.droppedItems,
-        }
+        activePageId,
+        pages: Object.entries(pages).reduce((acc, [pageId, page]) => {
+            acc[pageId] = {
+                name: page.name || pageId,
+                route: page.route || `/${encodeURIComponent(pageId.toLowerCase().replace(/\s+/g, '-'))}`,
+                droppedItems: page.droppedItems,
+                rootIds: page.rootIds,
+                selectedId: page.selectedId,
+            };
+            return acc;
+        }, {}),
     };
 
     const jsonString = JSON.stringify(exportData, null, 2);

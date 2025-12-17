@@ -3,20 +3,23 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import './workspace.css';
 
 import Toolbar from './components/toolbar/Toolbar';
-import PagesAndLayersTab from './components/pagesAndLayersTab/PagesAndLayersTab';
+import LayersTab from '@/features/workspace/components/layers/LayersTab';
 import CustomizeTab from './components/customizeTab/CustomizeTab';
 import DropZone from './components/dropZone/DropZone';
 import useBuilderStore from '@/store/useBuilderStore';
 import {useEffect, useMemo} from "react";
+import PagesTab from "@/features/workspace/components/pages/PagesTab";
 
 export default function Main() {
     console.log(' workspace.jsx RENDER');
     // Use selectors to only subscribe to specific pieces of state
-    const selectedId = useBuilderStore((state) => state.selectedId);
-    const droppedItems = useBuilderStore((state) => state.droppedItems);
-    const rootIds = useBuilderStore((state) => state.rootIds);
+    const activePageId = useBuilderStore((state) => state.activePageId);
+    const pages = useBuilderStore((state) => state.pages);
+    const page = pages[activePageId] || { droppedItems: {}, rootIds: [], selectedId: null };
+    const { droppedItems, rootIds, selectedId } = page;
+
     console.log(' State:', {
-        itemCount: droppedItems.length,
+        itemCount: Object.keys(droppedItems).length,
         selectedId
     });
 
@@ -25,7 +28,6 @@ export default function Main() {
     const updateItem = useBuilderStore((state) => state.updateItem);
     const selectItem = useBuilderStore((state) => state.selectItem);
     const deselectAll = useBuilderStore((state) => state.deselectAll);
-    const moveItem = useBuilderStore((state) => state.moveItem);
     const handleClear = useBuilderStore((state) => state.handleClear);
 
     // Helper function that accesses current store state
@@ -44,10 +46,6 @@ export default function Main() {
         () => selectedId ? droppedItems[selectedId] : null,
         [droppedItems, selectedId]
     );
-    console.log(' State:', {
-        itemCount: droppedItems.length,
-        selectedId
-    });
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -76,13 +74,18 @@ export default function Main() {
                 <div className="wrapper">
                     <Toolbar handleClear={handleClear} />
                     <div className="gridContainer">
-                        <PagesAndLayersTab />
+                        <div className="pagesAndLayerTab">
+                            <PagesTab />
+                            <LayersTab
+                                droppedItems={droppedItems}
+                                rootIds={rootIds}
+                            />
+                        </div>
                         <DropZone
                             droppedItems={rootItems} // only pass root item ( parentId = null )
                             allItems={droppedItems} // pass all items
                             getChildren={getChildren}
                             onDrop={handleDrop}
-                            moveItem={moveItem}
                             updateItem={updateItem}
                             selectItem={selectItem}
                             deselectAll={deselectAll}
