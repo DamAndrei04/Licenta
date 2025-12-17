@@ -1,133 +1,240 @@
 import { create } from 'zustand';
 import { temporal } from 'zundo';
 
+const createEmptyPage = (name) => ({
+    name,
+    route: `/${encodeURIComponent(name.toLowerCase().replace(/\s+/g, "-"))}`, // encodeURIComponent ensure the url is safe, regex converts spaces to -
+    droppedItems: {},
+    rootIds: [],
+    selectedId: null,
+});
+
 const useBuilderStore = create(
     temporal(
         (set, get) => ({
             // State
-            droppedItems: {},
-            rootIds: [],
-            selectedId: null,
+            pages: {
+                home: createEmptyPage("root"),
+            },
+            activePageId: 'home',
 
             // Actions
             handleDrop: (item, x, y, parentId = null) => {
-                const newId = `${item.componentType}-${Date.now()}`;
-                const newItem = {
-                    id: newId,
-                    type: item.componentType,
-                    layout: {
-                        x,
-                        y,
-                        width: item.defaultSize?.width || 100,
-                        height: item.defaultSize?.height || 40
-                    },
-                    parentId: parentId,
-                    childrenIds: [],
-                    props: {},
-                };
-
                 set((state) => {
+                    const page = state.pages[state.activePageId];
+
+                    const newId = `${item.componentType}-${Date.now()}`;
+                    const newItem = {
+                        id: newId,
+                        type: item.componentType,
+                        layout: {
+                            x,
+                            y,
+                            width: item.defaultSize?.width || 100,
+                            height: item.defaultSize?.height || 40
+                        },
+                        parentId: parentId,
+                        childrenIds: [],
+                        props: {},
+                    };
+
                     const updatedDroppedItems = {
-                        ...state.droppedItems,
+                        ...page.droppedItems,
                         [newId]: newItem
                     };
 
-                    if (parentId && state.droppedItems[parentId]) {
+                    if (parentId && page.droppedItems[parentId]) {
                         updatedDroppedItems[parentId] = {
-                            ...state.droppedItems[parentId],
-                            childrenIds: [...state.droppedItems[parentId].childrenIds, newId]
+                            ...page.droppedItems[parentId],
+                            childrenIds: [
+                                ...page.droppedItems[parentId].childrenIds,
+                                newId
+                            ],
                         };
                     }
 
-                    const updatedRootItems = parentId
-                        ? state.rootIds
-                        : [...state.rootIds, newId];
+                    const rootIds = parentId ? page.rootIds : [...page.rootIds, newId];
 
                     return {
-                        droppedItems: updatedDroppedItems,
-                        rootIds: updatedRootItems
+                        pages: {
+                            ...state.pages,
+                            [state.activePageId]: {
+                                ...page,
+                                droppedItems: updatedDroppedItems,
+                                rootIds,
+                            },
+                        },
                     };
                 });
             },
 
             updateItem: (id, updates) => {
                 set((state) => {
-                    const item = state.droppedItems[id];
+                    const page = state.pages[state.activePageId];
+                    const item = page.droppedItems[id];
                     if (!item) return state;
 
                     return {
-                        droppedItems: {
-                            ...state.droppedItems,
-                            [id]: {
-                                ...item,
-                                ...updates,
-                                layout:{
-                                  ...item.layout,
-                                  ...(updates.layout || {})
+                        pages: {
+                            ...state.pages,
+                            [state.activePageId]: {
+                                ...page,
+                                droppedItems: {
+                                    ...page.droppedItems,
+                                    [id]: {
+                                        ...item,
+                                        ...updates,
+                                        layout:{
+                                            ...item.layout,
+                                            ...(updates.layout || {})
+                                        },
+                                        props: {
+                                            ...item.props,
+                                            ...(updates.props || {}),
+                                            style: {
+                                                ...item.props?.style,
+                                                ...(updates.props?.style || {}),
+                                            },
+                                        },
+                                    },
                                 },
-                                props: {
-                                    ...item.props,
-                                    ...(updates.props || {}),
-                                    style: {
-                                        ...item.props?.style,
-                                        ...(updates.props?.style || {}),
-                                    }
-                                }
-                            }
-                        }
+                            },
+                        },
                     };
                 });
             },
 
             selectItem: (id) => {
-                set({ selectedId: id });
+                set((state) => {
+                    const page = state.pages[state.activePageId];
+                    return {
+                        pages: {
+                            ...state.pages,
+                            [state.activePageId]: {
+                                ...page,
+                                selectedId: id,
+                            },
+                        },
+                    };
+                });
             },
 
             deselectAll: () => {
-                set({ selectedId: null });
-            },
-
-            moveItem: (id, x, y) => {
-                set((state) => ({
-                    droppedItems: state.droppedItems.map(el =>
-                        el.id === id ? { ...el, x, y } : el
-                    )
-                }));
+                set((state) => {
+                    const page = state.pages[state.activePageId];
+                    return {
+                        pages: {
+                            ...state.pages,
+                            [state.activePageId]: {
+                                ...page,
+                                selectedId: null,
+                            },
+                        },
+                    };
+                });
             },
 
             handleClear: () => {
                 if (window.confirm('Are you sure you want to clear the whiteboard?')) {
-                    set({ droppedItems: {}, rootIds: [], selectedId: null });
+                    const currentPage = get().pages[get().activePageId];
+                    set((state) => {
+                        return {
+                            pages: {
+                                ...state.pages,
+                                [state.activePageId]: createEmptyPage(currentPage.name),
+                            },
+                        };
+                    });
                 }
             },
 
             deleteItem: (id) => {
-                set((state) => ({
-                    droppedItems: state.droppedItems.filter(item => item.id !== id),
-                    selectedId: state.selectedId === id ? null : state.selectedId
-                }));
+                set((state) => {
+                   const page = state.pages[state.activePageId];
+                   const { [id]: removed, ...rest } = page.droppedItems;
+
+                   const rootIds = page.rootIds.filter((rootId) => rootId !== id );
+                   const selectedId = page.selectedId === id ? null : page.selectedId;
+
+                   return {
+                       pages: {
+                           ...state.pages,
+                           [state.activePageId]: {
+                               ...page,
+                               droppedItems: rest,
+                               rootIds,
+                               selectedId,
+                           }
+                       }
+                   }
+                });
+
+
             },
 
             // Computed/Derived values
             getRootItems: () => {
-                return get().droppedItems.filter(item => !item.parentId);
+                const page = get().pages[get().activePageId];
+                return page.rootIds.map((id) => page.droppedItems[id]);
             },
 
             getChildren: (parentId) => {
-                const parent = get().droppedItems[parentId];
-                return parent ? parent.childrenIds.map(childrenId => get().droppedItems[childrenId]) : [];
+                const page = get().pages[get().activePageId];
+                const parent = page.droppedItems[parentId];
+                return parent
+                    ? parent.childrenIds.map(childrenId => page.droppedItems[childrenId])
+                    : [];
             },
 
             getSelectedElement: () => {
-                const { droppedItems, selectedId } = get();
-                return droppedItems[selectedId];
+               const page = get().pages[get().activePageId];
+               return page.droppedItems[page.selectedId];
             },
+
+            addPage: (name) => {
+                set((state) => {
+                    if (!name) name = `page-${Date.now()}`;
+                    const pageId = name;
+
+                    if(state.pages[pageId]) return state;
+
+                    return {
+                        pages: {
+                            ...state.pages,
+                            [pageId]: createEmptyPage(name),
+                        },
+                        activePageId: pageId,
+                    }
+                })
+            },
+
+            setActivePageId: (pageId) => {
+                set((state) => {
+                    if(!state.pages[pageId]) return state;
+                    return {activePageId: pageId };
+                });
+            },
+
+            deletePage: (pageId) => {
+                set((state) => {
+                    if(!state.pages[pageId]) return state;
+
+                    const { [pageId]: removed, ...rest } = state.pages;
+                    const newActive = Object.keys(rest)[0] || null;
+
+                    return {
+                        pages: rest,
+                        activePageId: newActive,
+                    }
+                })
+            }
         }),
         {
             limit: 50,
             equality: (a, b) => a === b,
         }
     )
+
 );
 
 export default useBuilderStore;

@@ -1,0 +1,76 @@
+.pages-panel {
+    padding: 10px;
+    position: relative;
+}
+
+.pages-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.pages-title {
+    margin: 0;
+    margin-right: 10px;
+}
+
+.add-button {
+    padding: 2px 6px;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.pages-list {
+    padding-left: 10px;
+}
+
+.page-item {
+    margin-bottom: 5px;
+}
+
+.page-button {
+    margin-right: 5px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.page-button.active {
+    font-weight: bold;
+}
+
+.delete-button {
+    color: red;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.popup {
+    position: absolute;
+    padding: 8px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    z-index: 100;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+}
+
+.popup-input {
+    width: 160px;
+    margin-right: 5px;
+    padding: 4px;
+}
+
+.popup-ok,
+.popup-cancel{
+    margin-right: 3px;
+}
+
+.page-item-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

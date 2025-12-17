@@ -107,6 +107,7 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
         drop(node);
     };
 
+    const isSelected = item.id === selectedId;
 
     return (
         <div
@@ -123,7 +124,7 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
             <div
                 ref={setRefs}
                 onMouseDown={startDrag}
-                className={`interaction-layer ${item.isSelected ? "selected" : ""} ${isOver && canHaveChildren ? "drop-target" : ""}`}
+                className={`interaction-layer ${isSelected ? "selected" : ""} ${isOver && canHaveChildren ? "drop-target" : ""}`}
                 style={{ width: "100%", height: "100%", position: "relative" }}
             >
                 {canHaveChildren ? (
@@ -139,16 +140,14 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                         {children.map((child) => (
                             <DroppedItem
                                 key={child.id}
-                                item={{
-                                    ...child,
-                                    isSelected: child.id === selectedId
-                                }}
+                                item={child}
                                 allItems={allItems}
                                 getChildren={getChildren}
                                 onDrop={onDrop}
                                 selectItem={selectItem}
                                 updateItem={updateItem}
                                 selectedId={selectedId}
+                                canvasRef={canvasRef}
                             />
                         ))}
                     </div>
@@ -164,7 +163,7 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                     />
                 )}
 
-                {item.isSelected && (
+                {isSelected && (
                     <>
                         <ResizeHandle dir="n" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>
                         <ResizeHandle dir="s" item={item} updateItem={updateItem} canvasRef={canvasRef} parentWidth={parentWidth} parentHeight={parentHeight}/>

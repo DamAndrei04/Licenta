@@ -4,8 +4,12 @@ import './ComponentsTree.css';
 import { ChevronRight , ChevronDown } from 'lucide-react';
 
 const ComponentsTree = ({ nodeId, depth = 0 }) => {
-    const droppedItems = useBuilderStore(state => state.droppedItems);
-    const selectedId = useBuilderStore(state => state.selectedId);
+    const activePageId = useBuilderStore(state => state.activePageId);
+    const pages = useBuilderStore(state => state.pages);
+
+    const page = pages[activePageId] || { droppedItems: {}, selectedId: null };
+    const { droppedItems, selectedId } = page;
+
     const selectItem = useBuilderStore(state => state.selectItem);
 
     const node = droppedItems[nodeId];
