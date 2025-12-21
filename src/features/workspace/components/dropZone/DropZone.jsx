@@ -12,7 +12,8 @@ const DropZone = ({
                       updateItem,
                       selectItem,
                       deselectAll,
-                      selectedId
+                      selectedId,
+                      deleteItem,
                     }) => {
     const [{ isOver }, drop] = useDrop(() => ({
         accept: ["COMPONENT", "DROPPED_ITEM"],
@@ -76,6 +77,7 @@ const DropZone = ({
                     selectItem={selectItem}
                     updateItem={updateItem}
                     selectedId={selectedId}
+                    deleteItem={deleteItem}
                 />
             ))}
         </div>

@@ -1,17 +1,18 @@
-import { useRef , useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import { ComponentRegistry } from "@/components/registry/ComponentRegistry";
 import ResizeHandle from "../resizeHandlers/ResizeHandle";
 import "./DroppedItem.css";
 import { useDrop } from "react-dnd";
+import RightClickMenu from "../rightClickMenu/RightClickMenu";
 
-const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateItem, selectedId, canvasRef }) => {
+const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateItem, selectedId, canvasRef, deleteItem }) => {
 
     console.log(` DroppedItem [${item.type}-${item.id}] RENDER`, {
         isSelected: item.id === selectedId
     });
 
     const interactionRef = useRef(null);
-
+    const [rightClickMenu, setRightClickMenu] = useState(null);
     const registryItem = ComponentRegistry[item.type];
     const Component = registryItem.component;
     const mergedProps = { ...registryItem.defaultProps, ...item.props };
@@ -63,6 +64,8 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
 
     const renderX = previewPos?.x ?? item.layout.x;
     const renderY = previewPos?.y ?? item.layout.y;
+
+    const isSelected = item.id === selectedId;
 
     const startDrag = (e) => {
 
@@ -123,8 +126,6 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
         drop(node);
     };
 
-    const isSelected = item.id === selectedId;
-
     const [previewLayout, setPreviewLayout] = useState(null);
     const renderLayout = {
         x: previewLayout?.x ?? renderX,
@@ -139,8 +140,25 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
             registryItem.defaultSize.height,
     };
 
+    const handleDelete = () => {
+        deleteItem(item.id);
+        setRightClickMenu(null);
+    };
+
+    const handleRightClickMenu = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        selectItem(item.id);
+
+        setRightClickMenu({
+           x: e.clientX,
+           y: e.clientY,
+        });
+    }
 
     return (
+        <>
         <div
             className="layout-container"
             style={{
@@ -155,6 +173,7 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
             <div
                 ref={setRefs}
                 onMouseDown={startDrag}
+                onContextMenu={handleRightClickMenu}
                 className={`interaction-layer ${isSelected ? "selected" : ""} ${isOver && canHaveChildren ? "drop-target" : ""}`}
                 style={{ width: "100%", height: "100%", position: "relative" }}
             >
@@ -208,6 +227,16 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                 )}
             </div>
         </div>
+
+        {rightClickMenu && (
+            <RightClickMenu
+                x={rightClickMenu.x}
+                y={rightClickMenu.y}
+                onClose={() => setRightClickMenu(null)}
+                onDelete={handleDelete}
+            />
+        )}
+        </>
     );
 };
 
