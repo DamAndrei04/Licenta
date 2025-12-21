@@ -29,6 +29,7 @@ export default function Main() {
     const selectItem = useBuilderStore((state) => state.selectItem);
     const deselectAll = useBuilderStore((state) => state.deselectAll);
     const handleClear = useBuilderStore((state) => state.handleClear);
+    const deleteItem = useBuilderStore((state) => state.deleteItem);
 
     // Helper function that accesses current store state
     const getChildren = (parentId) => {
@@ -90,6 +91,7 @@ export default function Main() {
                             selectItem={selectItem}
                             deselectAll={deselectAll}
                             selectedId={selectedId}
+                            deleteItem={deleteItem}
                         />
                         <CustomizeTab
                             selectedElement={selectedElement}
