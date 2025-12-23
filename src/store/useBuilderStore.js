@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { temporal } from 'zundo';
+import {importJSON} from "@/utils/ImportJson";
 
 const createEmptyPage = (name) => ({
     name,
@@ -225,7 +226,19 @@ const useBuilderStore = create(
                         activePageId: newActive,
                     }
                 })
-            }
+            },
+            importState: (importedData) => {
+                const normalized = importJSON(importedData);
+
+                if (!normalized) {
+                    alert('Failed to import: Invalid JSON structure');
+                    return;
+                }
+
+                if (window.confirm('This will replace your current work. Continue?')) {
+                    set(() => normalized);
+                }
+            },
         }),
         {
             limit: 50,
