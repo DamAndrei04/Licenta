@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: uibuilder-db
+    network_mode: host
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: uibuilder
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+    postgres_data:
