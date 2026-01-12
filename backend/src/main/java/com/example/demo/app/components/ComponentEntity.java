@@ -7,7 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
@@ -59,9 +61,22 @@ public class ComponentEntity {
     @Column(columnDefinition = "json", name = "state")
     private Map<String, Object> state;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+
+    @PrePersist
+    private void onCreate(){
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    private void onUpdate(){
+        updatedAt = LocalDateTime.now();
+    }
 }

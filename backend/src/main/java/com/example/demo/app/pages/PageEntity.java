@@ -39,4 +39,14 @@ public class PageEntity {
 
     @OneToMany(mappedBy = "component", cascade = CascadeType.ALL)
     private List<ComponentEntity> components = new ArrayList<>();
+
+    @PrePersist
+    private void onCreate(){
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    private void onUpdate(){
+        updatedAt = LocalDateTime.now();
+    }
 }

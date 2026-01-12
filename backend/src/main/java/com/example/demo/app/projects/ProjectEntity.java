@@ -40,4 +40,15 @@ public class ProjectEntity {
 
     @OneToMany(mappedBy = "page", cascade = CascadeType.ALL)
     private List<PageEntity> pages = new ArrayList<>();
+
+
+    @PrePersist
+    private void onCreate(){
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    private void onUpdate(){
+        updatedAt = LocalDateTime.now();
+    }
 }
