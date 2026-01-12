@@ -36,4 +36,10 @@ public class UserEntity {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<ProjectEntity> projects = new ArrayList<>();
 
+
+    @PrePersist
+    private void onCreate(){
+        createdAt = LocalDateTime.now();
+    }
+
 }
