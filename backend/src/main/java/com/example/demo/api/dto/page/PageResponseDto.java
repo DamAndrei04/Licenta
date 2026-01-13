@@ -17,6 +17,8 @@ public class PageResponseDto {
 
     private Long id;
 
+    private Long projectId;
+
     private String name;
 
     private String route;

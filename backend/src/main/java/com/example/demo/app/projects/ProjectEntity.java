@@ -38,7 +38,7 @@ public class ProjectEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "page", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<PageEntity> pages = new ArrayList<>();
 
 

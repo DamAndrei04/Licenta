@@ -33,7 +33,7 @@ public class UserEntity {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<ProjectEntity> projects = new ArrayList<>();
 
 
