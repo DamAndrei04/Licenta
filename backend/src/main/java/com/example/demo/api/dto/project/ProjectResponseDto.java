@@ -24,6 +24,8 @@ public class ProjectResponseDto {
 
     private String description;
 
+    private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
 
     private List<PageResponseDto> pages;
