@@ -9,7 +9,7 @@ import lombok.Data;
 @Builder
 public class UserRequestDto {
 
-    @Size(min = 10, max = 255)
+    @Size(min = 2, max = 255)
     @NotNull
     private String username;
 

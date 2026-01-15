@@ -42,14 +42,15 @@ public class ProjectService {
     }
 
     public ProjectResponseDto getProjectById(Long projectId){
-        ProjectEntity project = projectRepository.findById(projectId)
+        ProjectEntity project = projectRepository
+                .findById(projectId)
                 .orElseThrow(
                         ()-> new ProjectNotFoundException(String.format("Project with id: %d doesn't exist", projectId)));
 
         return ProjectConverter.convertToResponseDto(project);
     }
 
-    public List<ProjectResponseDto> getProjectByUserId(Long userId) {
+    public List<ProjectResponseDto> getProjectsByUserId(Long userId) {
         if (!userRepository.existsById(userId))
             throw new UserNotFoundException(String.format("User with id: %d doesn't exist", userId));
         List<ProjectEntity> projects = projectRepository.getProjectEntitiesByUserId(userId);
@@ -58,7 +59,7 @@ public class ProjectService {
     }
 
     public List<ProjectResponseDto> getCurrentUserProjects() {
-        return getProjectByUserId(userService.getCurrentUserEntity().getId());
+        return getProjectsByUserId(userService.getCurrentUserEntity().getId());
     }
 
 

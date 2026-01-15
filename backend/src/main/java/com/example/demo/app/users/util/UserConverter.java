@@ -1,6 +1,7 @@
 package com.example.demo.app.users.util;
 
 import com.example.demo.api.dto.user.UserResponseDto;
+import com.example.demo.app.projects.util.ProjectConverter;
 import com.example.demo.app.users.UserEntity;
 import lombok.experimental.UtilityClass;
 
@@ -11,6 +12,11 @@ public class UserConverter {
         return UserResponseDto.builder()
                 .id(userEntity.getId())
                 .username(userEntity.getUsername())
+                .createdAt(userEntity.getCreatedAt())
+                .lastLogin(userEntity.getLastLogin())
+                .projects(userEntity.getProjects().stream()
+                        .map(ProjectConverter::convertToResponseDto)
+                        .toList())
                 .build();
     }
 
@@ -18,6 +24,11 @@ public class UserConverter {
         return UserResponseDto.builder()
                 .id(userEntity.getId())
                 .username(userEntity.getUsername())
+                .createdAt(userEntity.getCreatedAt())
+                .lastLogin(userEntity.getLastLogin())
+                .projects(userEntity.getProjects().stream()
+                        .map(ProjectConverter::convertToResponseDto)
+                        .toList())
                 .build();
     }
 }

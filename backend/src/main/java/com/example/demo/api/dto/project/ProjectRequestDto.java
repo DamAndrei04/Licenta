@@ -9,9 +9,6 @@ import lombok.Data;
 @Builder
 public class ProjectRequestDto {
 
-    @NotNull
-    private Long userId;
-
     @Size(max = 255)
     @NotNull
     private String name;
