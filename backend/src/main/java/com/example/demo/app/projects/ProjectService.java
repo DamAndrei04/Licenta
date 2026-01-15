@@ -11,6 +11,8 @@ import com.example.demo.app.users.UserRepository;
 import com.example.demo.app.users.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -85,7 +87,7 @@ public class ProjectService {
         projectRepository.deleteById(project.getId());
     }
 
-    private void validateProjectOwnership(ProjectEntity project){
+    public void validateProjectOwnership(ProjectEntity project){
         UserEntity currentUser = userService.getCurrentUserEntity();
         if(!(currentUser.getId()).equals(project.getUser().getId()))
             throw new OwnershipException();

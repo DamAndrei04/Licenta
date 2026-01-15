@@ -13,6 +13,7 @@ public class ProjectConverter {
                 .userId(project.getUser().getId())
                 .name(project.getName())
                 .description(project.getDescription())
+                .createdAt(project.getCreatedAt())
                 .updatedAt(project.getUpdatedAt())
                 .pages(project.getPages().stream()
                         .map(PageConverter::convertToResponseDto)

@@ -20,9 +20,11 @@ public class ComponentResponseDto {
 
     private String externalId;
 
+    private Long pageId;
+
     private Long parentId;
 
-    private List<ComponentResponseDto> children;
+    private List<String> children;
 
     private ComponentType type;
 
@@ -33,6 +35,8 @@ public class ComponentResponseDto {
     private Map<String, Object> events;
 
     private Map<String, Object> state;
+
+    private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 

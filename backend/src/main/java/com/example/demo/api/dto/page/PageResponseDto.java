@@ -23,6 +23,8 @@ public class PageResponseDto {
 
     private String route;
 
+    private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
 
     List<ComponentResponseDto> components;
