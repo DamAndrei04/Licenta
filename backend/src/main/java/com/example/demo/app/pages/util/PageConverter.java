@@ -16,6 +16,9 @@ public class PageConverter {
                 .projectId(page.getProject().getId())
                 .name(page.getName())
                 .route(page.getRoute())
+                .components(page.getComponents().stream()
+                        .map(ComponentConverter::convertToResponseDto)
+                        .toList())
                 .createdAt(page.getCreatedAt())
                 .updatedAt(page.getUpdatedAt())
                 .build();

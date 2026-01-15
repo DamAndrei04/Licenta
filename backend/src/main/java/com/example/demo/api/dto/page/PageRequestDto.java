@@ -9,8 +9,8 @@ import lombok.Data;
 @Builder
 public class PageRequestDto {
 
-    @NotNull
-    private Long projectId;
+    //@NotNull
+    //private Long projectId;
 
     @Size(max = 255)
     @NotNull
