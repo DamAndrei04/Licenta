@@ -38,7 +38,7 @@ public class ComponentEntity {
     @JoinColumn(name = "parent_id")
     private ComponentEntity parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ComponentEntity> children = new ArrayList<>();
 
     @Column(name = "type")

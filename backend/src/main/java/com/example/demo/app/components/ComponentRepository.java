@@ -8,5 +8,9 @@ import java.util.List;
 public interface ComponentRepository extends JpaRepository<ComponentEntity, Long> {
     List<ComponentEntity> getComponentEntitiesByPageId(Long id);
 
-    Long page(PageEntity page);
+    //Long page(PageEntity page);
+
+    //void deleteComponentByProjectId(Long projectId);
+
+    void deleteByPageIdIn(List<Long> pageIds);
 }
