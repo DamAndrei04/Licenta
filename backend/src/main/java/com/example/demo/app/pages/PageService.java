@@ -91,6 +91,17 @@ public class PageService {
         pageRepository.deleteById(page.getId());
     }
 
+    public void deletePagesByProjectId(Long projectId){
+        ProjectEntity project = projectRepository
+                .findById(projectId)
+                .orElseThrow(
+                        () -> new ProjectNotFoundException(String.format("Project with id: %d not found", projectId)));
+
+        project.getPages().clear();
+
+        projectRepository.save(project);
+    }
+
     public void validatePageOwnership(PageEntity page){
         UserEntity currentUser = userService.getCurrentUserEntity();
         if(!(currentUser.getId()).equals(page.getProject().getUser().getId()))

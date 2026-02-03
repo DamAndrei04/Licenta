@@ -5,11 +5,14 @@ import com.example.demo.api.dto.component.ComponentResponseDto;
 import com.example.demo.api.exception.ComponentNotFoundException;
 import com.example.demo.api.exception.OwnershipException;
 import com.example.demo.api.exception.PageNotFoundException;
+import com.example.demo.api.exception.ProjectNotFoundException;
 import com.example.demo.app.components.util.ComponentConverter;
 import com.example.demo.app.pages.PageEntity;
 import com.example.demo.app.pages.PageRepository;
 import com.example.demo.app.pages.PageService;
 import com.example.demo.app.pages.util.PageConverter;
+import com.example.demo.app.projects.ProjectEntity;
+import com.example.demo.app.projects.ProjectRepository;
 import com.example.demo.app.users.UserEntity;
 import com.example.demo.app.users.UserService;
 import jakarta.transaction.Transactional;
@@ -26,8 +29,9 @@ public class ComponentService {
     private final PageService pageService;
     private final PageRepository pageRepository;
     private final UserService userService;
+    private final ProjectRepository projectRepository;
 
-    @Transactional
+    /*@Transactional
     public ComponentResponseDto createComponent(ComponentRequestDto requestDto, Long pageId) {
 
         PageEntity page = pageRepository
@@ -68,7 +72,7 @@ public class ComponentService {
                         () -> new ComponentNotFoundException(String.format("Component with id: %d not found", componentId)));
 
         return ComponentConverter.convertToResponseDto(component);
-    }
+    }*/
 
     public List<ComponentResponseDto> getComponentsByPageId(Long pageId) {
         if(!pageRepository.existsById(pageId))
@@ -78,7 +82,7 @@ public class ComponentService {
         return components.stream().map(ComponentConverter::convertToResponseDto).toList();
     }
 
-    public ComponentResponseDto updateComponent(ComponentRequestDto requestDto, Long componentId){
+    /*public ComponentResponseDto updateComponent(ComponentRequestDto requestDto, Long componentId){
         ComponentEntity component = componentRepository
                 .findById(componentId)
                 .orElseThrow(
@@ -90,15 +94,27 @@ public class ComponentService {
 
         ComponentEntity updatedComponent = componentRepository.saveAndFlush(component);
         return ComponentConverter.convertToResponseDto(updatedComponent);
+    }*/
+
+    public void deleteComponentByProjectId(Long projectId){
+
+        List<PageEntity> pages = pageRepository.getPageEntitiesByProjectId(projectId);
+        List<Long> pageIds = pages.stream()
+                .map(PageEntity::getId)
+                .toList();
+        if(!pageIds.isEmpty()){
+            componentRepository.deleteByPageIdIn(pageIds);
+        }
+
     }
 
-    public void validateComponentOwnership(ComponentEntity component){
+    /*public void validateComponentOwnership(ComponentEntity component){
         UserEntity currentUser = userService.getCurrentUserEntity();
         if(!(currentUser.getId().equals(component.getPage().getProject().getUser().getId())))
             throw new OwnershipException();
-    }
+    }*/
 
-    private void updateComponentData(ComponentRequestDto requestDto, ComponentEntity component) {
+    /*private void updateComponentData(ComponentRequestDto requestDto, ComponentEntity component) {
         component.setExternalId(requestDto.getExternalId());
         component.setType(requestDto.getType());
         component.setProps(requestDto.getProps());
@@ -106,5 +122,5 @@ public class ComponentService {
         component.setEvents(requestDto.getEvents());
         component.setState(requestDto.getState());
 
-    }
+    }*/
 }

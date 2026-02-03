@@ -20,10 +20,7 @@ public class ComponentRequestDto {
     @NotNull
     private String externalId;
 
-    @NotNull
-    private Long pageId;
-
-    private Long parentId;
+    private String parentExternalId;
 
     @NotNull
     private ComponentType type;

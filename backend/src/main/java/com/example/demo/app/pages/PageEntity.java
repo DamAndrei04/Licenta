@@ -37,7 +37,7 @@ public class PageEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "page", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ComponentEntity> components = new ArrayList<>();
 
     @PrePersist
