@@ -1,0 +1,361 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://your-domain.com/schema/ui-descriptor-v3.json",
+  "title": "UI Descriptor v3 (Actual Application Format)",
+  "description": "JSON schema matching the real exported format from the drag-and-drop UI builder",
+  "type": "object",
+  "required": ["version", "pages"],
+  "additionalProperties": false,
+
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Schema version identifier"
+    },
+
+    "exportedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the UI was exported"
+    },
+
+    "activePageId": {
+      "type": "string",
+      "description": "ID of the currently active/selected page"
+    },
+
+    "pages": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/$defs/page"
+        }
+      },
+      "description": "Map of all pages, keyed by page ID"
+    }
+  },
+
+  "$defs": {
+    "page": {
+      "type": "object",
+      "required": ["name", "route", "droppedItems", "rootIds"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name of the page"
+        },
+
+        "route": {
+          "type": "string",
+          "pattern": "^/.*",
+          "description": "URL route for the page (can include params like :id)"
+        },
+
+        "droppedItems": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9_-]+$": {
+              "$ref": "#/$defs/component"
+            }
+          },
+          "description": "Flat map of all components on the page, keyed by component ID"
+        },
+
+        "rootIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Array of component IDs that are at the root level (no parentId)"
+        },
+
+        "selectedId": {
+          "type": ["string", "null"],
+          "description": "ID of currently selected component, or null"
+        }
+      }
+    },
+
+    "component": {
+      "type": "object",
+      "required": ["id", "type", "layout", "parentId", "childrenIds", "props"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "description": "Unique component identifier within the page"
+        },
+
+        "type": {
+          "type": "string",
+          "enum": ["button", "input", "card", "label", "accordion"],
+          "description": "Component type from ComponentRegistry"
+        },
+
+        "layout": {
+          "$ref": "#/$defs/layout",
+          "description": "Position and dimensions of the component"
+        },
+
+        "parentId": {
+          "type": ["string", "null"],
+          "description": "ID of parent component, null for root-level components"
+        },
+
+        "childrenIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Array of child component IDs (empty array if no children)"
+        },
+
+        "props": {
+          "$ref": "#/$defs/componentProps",
+          "description": "Component-specific properties and styles"
+        },
+
+        "alignment": {
+          "type": "string",
+          "enum": ["left", "center", "right", "custom"],
+          "description": "Horizontal alignment within parent container (optional)"
+        }
+      }
+    },
+
+    "layout": {
+      "type": "object",
+      "required": ["x", "y", "width", "height"],
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+          "description": "Horizontal position in pixels (relative to parent or canvas)"
+        },
+
+        "y": {
+          "type": "number",
+          "description": "Vertical position in pixels (relative to parent or canvas)"
+        },
+
+        "width": {
+          "type": "number",
+          "description": "Component width in pixels"
+        },
+
+        "height": {
+          "type": "number",
+          "description": "Component height in pixels"
+        }
+      }
+    },
+
+    "componentProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Text content for label components"
+        },
+
+        "children": {
+          "type": "string",
+          "description": "Text content for button components"
+        },
+
+        "placeholder": {
+          "type": "string",
+          "description": "Placeholder text for input fields"
+        },
+
+        "value": {
+          "type": "string",
+          "description": "Current value for input components"
+        },
+
+        "type": {
+          "type": "string",
+          "enum": ["text", "email", "password", "number", "tel", "url", "search"],
+          "description": "Input type attribute (for input components)"
+        },
+
+        "variant": {
+          "type": "string",
+          "enum": ["default", "destructive", "outline", "secondary", "ghost", "link"],
+          "description": "Button variant style"
+        },
+
+        "size": {
+          "type": "string",
+          "enum": ["default", "sm", "lg", "icon"],
+          "description": "Component size variant"
+        },
+
+        "className": {
+          "type": "string",
+          "description": "Additional CSS classes (Tailwind)"
+        },
+
+        "style": {
+          "$ref": "#/$defs/styleObject",
+          "description": "Inline CSS styles object"
+        },
+
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the component is disabled"
+        }
+      }
+    },
+
+    "styleObject": {
+      "type": "object",
+      "description": "CSS-in-JS style properties",
+      "additionalProperties": false,
+      "properties": {
+        "backgroundColor": {
+          "type": "string",
+          "description": "Background color (hex, rgb, rgba, gradient, or named color)"
+        },
+
+        "backgroundImage": {
+          "type": "string",
+          "description": "Background image or gradient (e.g., 'linear-gradient(...)')"
+        },
+
+        "color": {
+          "type": "string",
+          "description": "Text color (hex, rgb, rgba, or named color)"
+        },
+
+        "borderColor": {
+          "type": "string",
+          "description": "Border color"
+        },
+
+        "borderWidth": {
+          "type": "string",
+          "description": "Border width (e.g., '1px')"
+        },
+
+        "borderStyle": {
+          "type": "string",
+          "enum": ["solid", "dotted", "dashed", "double", "groove", "inset", "outset", "hidden", "none"],
+          "description": "Border style"
+        },
+
+        "borderRadius": {
+          "type": "string",
+          "description": "Border radius (e.g., '8px', '50%', '12px 12px 0 0')"
+        },
+
+        "border": {
+          "type": "string",
+          "description": "Border shorthand (e.g., '3px solid #667eea')"
+        },
+
+        "padding": {
+          "type": "string",
+          "description": "Padding (CSS shorthand)"
+        },
+
+        "margin": {
+          "type": "string",
+          "description": "Margin (CSS shorthand)"
+        },
+
+        "marginBottom": {
+          "type": "string",
+          "description": "Bottom margin (e.g., '15px')"
+        },
+
+        "fontFamily": {
+          "type": "string",
+          "description": "Font family"
+        },
+
+        "fontSize": {
+          "type": "string",
+          "description": "Font size (e.g., '16px', '1.5rem')"
+        },
+
+        "fontWeight": {
+          "type": ["string", "number"],
+          "description": "Font weight (e.g., 'bold', '600', 700)"
+        },
+
+        "fontStyle": {
+          "type": "string",
+          "enum": ["normal", "italic", "oblique"],
+          "description": "Font style"
+        },
+
+        "textDecoration": {
+          "type": "string",
+          "description": "Text decoration (e.g., 'none', 'underline')"
+        },
+
+        "textAlign": {
+          "type": "string",
+          "enum": ["left", "center", "right", "justify"],
+          "description": "Text alignment"
+        },
+
+        "lineHeight": {
+          "type": ["string", "number"],
+          "description": "Line height (e.g., '1.6', '24px')"
+        },
+
+        "letterSpacing": {
+          "type": "string",
+          "description": "Character spacing"
+        },
+
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Opacity (0-1)"
+        },
+
+        "boxShadow": {
+          "type": "string",
+          "description": "Box shadow CSS property (e.g., '0 4px 12px rgba(0,0,0,0.1)')"
+        },
+
+        "display": {
+          "type": "string",
+          "enum": ["block", "inline", "inline-block", "flex", "grid", "none"],
+          "description": "Display property"
+        },
+
+        "alignItems": {
+          "type": "string",
+          "enum": ["flex-start", "flex-end", "center", "baseline", "stretch"],
+          "description": "Flex align-items property"
+        },
+
+        "justifyContent": {
+          "type": "string",
+          "enum": ["flex-start", "flex-end", "center", "space-between", "space-around", "space-evenly"],
+          "description": "Flex justify-content property"
+        },
+
+        "position": {
+          "type": "string",
+          "enum": ["static", "relative", "absolute", "fixed", "sticky"],
+          "description": "Position property"
+        },
+
+        "cursor": {
+          "type": "string",
+          "description": "Cursor style (e.g., 'pointer', 'default')"
+        }
+      }
+    }
+  }
+}
