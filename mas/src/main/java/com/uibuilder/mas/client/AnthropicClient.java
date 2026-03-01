@@ -29,10 +29,10 @@ public class AnthropicClient {
     @Value("${anthropic.api.url:https://api.anthropic.com/v1/messages}")
     private String apiUrl;
     
-    @Value("${anthropic.model:claude-3-5-sonnet-20241022}")
+    @Value("${anthropic.model:claude-haiku-4-5-20251001}")
     private String model;
     
-    @Value("${anthropic.max.tokens:4096}")
+    @Value("${anthropic.max.tokens:32000}")
     private int maxTokens;
     
     private final HttpClient httpClient = HttpClient.newBuilder()
@@ -61,7 +61,7 @@ public class AnthropicClient {
                     .header("Content-Type", "application/json")
                     .header("x-api-key", apiKey)
                     .header("anthropic-version", "2023-06-01")
-                    .timeout(Duration.ofSeconds(60))
+                    .timeout(Duration.ofMinutes(5))
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
             

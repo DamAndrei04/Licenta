@@ -498,3 +498,5 @@ CRITICAL REMINDERS:
 - Height is unlimited (scrollable)
 - Choose appropriate color theme for the domain
 - Create visual hierarchy through typography and color
+- **DO NOT wrap all sections inside a single root container** — each major section (header, content, sidebar, footer) must be its own top-level element in the array
+- **The array itself is the root** — place sections side by side in the array, not nested inside a wrapper card
