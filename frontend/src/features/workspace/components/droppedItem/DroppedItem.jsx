@@ -15,7 +15,10 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
     const [rightClickMenu, setRightClickMenu] = useState(null);
     const registryItem = ComponentRegistry[item.type];
     const Component = registryItem.component;
-    const mergedProps = { ...registryItem.defaultProps, ...item.props };
+    const mergedProps = { ...registryItem.defaultProps,
+                                    ...item.props,
+                                    children: item.props.children ?? item.props.text ?? registryItem.defaultProps.children
+    };
     const canHaveChildren = registryItem.canHaveChildren || false;
     const children = getChildren(item.id);
 

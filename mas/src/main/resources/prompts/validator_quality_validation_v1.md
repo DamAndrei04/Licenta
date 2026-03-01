@@ -37,6 +37,7 @@ Validate the generated UI component tree against structural rules, schema compli
 - No circular references in hierarchy
 - Maximum nesting depth not exceeded (≤ 6 levels)
 - Root nodes have no parent references
+- **The root of the output must be an array with multiple top-level sections — a single root card wrapping all other sections is a CRITICAL violation**
 
 ## 5. LAYOUT VALIDITY
 - Coordinates are non-negative integers
@@ -124,6 +125,14 @@ if (!component.properties.style.backgroundColor && !component.properties.style.c
 // For labels/text components:
 if (component.type === 'label' && !component.properties.style.fontSize) {
   // HIGH violation - missing typography
+}
+```
+
+## Root Structure Check
+```javascript
+// If the output array has only one element and it contains all other sections as children:
+if (rootArray.length === 1 && rootArray[0].children?.length > 2) {
+  // CRITICAL violation - single wrapper detected
 }
 ```
 
@@ -245,6 +254,33 @@ Violation:
 
 No violations - has rich styling, static layout, within bounds.
 
+## Example 6: Single Root Wrapper (CRITICAL)
+```json
+[
+  {
+    "id": "main-app",
+    "type": "card",
+    "layout": {"x": 0, "y": 0, "width": 1800, "height": 3000},
+    "children": [
+      {"id": "header", ...},
+      {"id": "hero", ...},
+      {"id": "products", ...}
+    ]
+  }
+]
+```
+
+Violation:
+```json
+{
+  "severity": "CRITICAL",
+  "rule": "STRUCTURAL_INTEGRITY",
+  "componentId": "main-app",
+  "description": "Single root wrapper detected containing all page sections as children. Each major section must be its own top-level element in the array.",
+  "recommendation": "Remove the wrapper and place header, hero, and products as separate top-level items in the root array, stacked vertically using y coordinates."
+}
+```
+
 # COMMON VIOLATIONS TO CHECK
 
 **Canvas Issues:**
@@ -270,6 +306,9 @@ No violations - has rich styling, static layout, within bounds.
 - ✓ Check input field heights (min 36px)
 - ✓ Check text readability (fontSize ≥ 12px)
 
+**Structure Issues:**
+- ✓ Check if root array has only one element wrapping everything else
+
 ---
 
 # YOUR TASK
@@ -287,3 +326,4 @@ CRITICAL: Check ALL of these:
 4. Colors present in styles
 5. Typography defined for text components
 6. Visual depth (shadows/borders)
+7. Root array contains multiple top-level sections, not a single wrapper

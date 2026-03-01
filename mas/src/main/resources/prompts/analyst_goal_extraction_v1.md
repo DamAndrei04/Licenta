@@ -24,6 +24,7 @@ Extract ALL design and business goals from the user requirement. Goals are desir
 2. **Extract user experience goals** (e.g., simplify checkout, reduce friction)
 3. **Determine technical goals** (e.g., fast load times, smooth animations)
 4. **Infer domain-specific goals** based on application type
+5. **Always include the structural layout goal** to enforce correct canvas rendering
 
 # OUTPUT FORMAT
 Return a valid JSON array with NO markdown formatting, NO code blocks, NO explanations.
@@ -38,11 +39,19 @@ Each goal object must have EXACTLY these fields:
 ```
 
 # QUALITY REQUIREMENTS
-- Minimum 5 goals, maximum 10 goals
+- Minimum 6 goals, maximum 11 goals
 - Be SPECIFIC not vague (Bad: "Good design", Good: "Display restaurant ratings prominently to build trust")
 - Make goals MEASURABLE when possible
 - Align with the application domain
 - At least 2-3 goals should be CRITICAL priority
+
+# MANDATORY GOAL (ALWAYS INCLUDE)
+Always include this goal regardless of the requirement:
+{
+"type": "LAYOUT",
+"description": "Major page sections (navbar, hero, content, footer) must be independent root-level components stacked vertically by y-coordinate, with no single wrapper container grouping them all together",
+"priority": "CRITICAL"
+}
 
 # EXAMPLE INPUT
 User Requirement: "Build an online learning platform"
@@ -51,12 +60,12 @@ User Requirement: "Build an online learning platform"
 [
 {
 "type": "LAYOUT",
-"description": "Create clear visual separation between course catalog, user dashboard, and learning content areas",
+"description": "Major page sections (navbar, course catalog, featured section, footer) must be independent root-level components stacked vertically by y-coordinate, with no single wrapper container grouping them all",
 "priority": "CRITICAL"
 },
 {
 "type": "NAVIGATION",
-"description": "Enable seamless navigation between courses with persistent progress tracking",
+"description": "Enable seamless navigation between courses with a persistent top navbar rendered as a root-level component",
 "priority": "CRITICAL"
 },
 {

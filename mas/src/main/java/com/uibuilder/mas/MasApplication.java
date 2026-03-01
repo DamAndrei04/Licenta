@@ -43,7 +43,7 @@ public class MasApplication {
     public CommandLineRunner runMAS() {
         return args -> {
             // Example user requirement
-            String userRequirement = "Build an interface for a food delivery web platform";
+            String userRequirement = "Build an interface for an online store. I want a navbar at the top with search bar. Underneath a hero section displaying infos about my product. Right underneath a feedbacks section and under it the actual products displayed. The products needs to be displayed in a 3x3 grid containing price, description and name.";
 
 
         

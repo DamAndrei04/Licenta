@@ -3,10 +3,13 @@
 *.iml
 *.iws
 *.ipr
+.env
 
 # OS
 .DS_Store
 Thumbs.db
 
-/build/
-/gradle/
+build/
+.gradle/
+
+.log

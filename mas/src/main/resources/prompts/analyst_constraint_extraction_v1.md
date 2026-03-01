@@ -15,11 +15,20 @@ Extract ALL design and technical constraints from the user requirement. Constrai
 - **CONTENT**: Required sections, data display formats, text constraints
 - **BRANDING**: Color schemes, typography, design system adherence
 
+
+# CANVAS ARCHITECTURE (CRITICAL - MUST UNDERSTAND)
+The rendering system uses a whiteboard-based absolute positioning model:
+- The whiteboard/canvas IS the scrollable viewport
+- ALL components are positioned absolute relative to their parent or canvas
+- There is NO fixed positioning — navbars and headers must be ROOT-LEVEL components
+- Major page sections must be independent, never wrapped in a single global container
+
 # ANALYSIS STRATEGY
 1. **Extract explicit constraints** mentioned directly in the requirement
 2. **Infer implicit constraints** based on application type and best practices
 3. **Identify domain-specific constraints** (e.g., food delivery needs: menu browsing, cart, checkout)
 4. **Consider technical constraints** (responsive design, cross-browser, performance)
+5. **Always include the root-level layout constraint** for any UI with a navbar or distinct sections
 
 # OUTPUT FORMAT
 Return a valid JSON array with NO markdown formatting, NO code blocks, NO explanations.
@@ -38,6 +47,19 @@ Each constraint object must have EXACTLY these fields:
 - Focus on MEASURABLE constraints when possible
 - Consider the domain (e.g., e-commerce, SaaS, portfolio, etc.)
 
+# MANDATORY CONSTRAINT (ALWAYS INCLUDE)
+Always include this constraint regardless of the requirement:
+{
+"type": "LAYOUT",
+"description": "Major page sections (navbar, hero, content areas, footer) must each be independent root-level components with parentId null, stacked vertically by y-coordinate. No single wrapper container may group all sections together."
+}
+
+For any UI that includes a navbar or header, also include:
+{
+"type": "NAVIGATION",
+"description": "Navigation bar must be a root-level component positioned at y:0, never nested inside a wrapper container, so it renders correctly in the absolute-positioned canvas system."
+}
+
 # EXAMPLE INPUT
 User Requirement: "Build a personal portfolio website"
 
@@ -45,7 +67,7 @@ User Requirement: "Build a personal portfolio website"
 [
 {
 "type": "LAYOUT",
-"description": "Single-page layout with distinct sections for hero, about, projects, and contact"
+"description": "Major page sections (hero, about, projects, contact) must each be independent root-level components stacked vertically by y-coordinate, with no global wrapper container"
 },
 {
 "type": "RESPONSIVENESS",
@@ -53,7 +75,7 @@ User Requirement: "Build a personal portfolio website"
 },
 {
 "type": "NAVIGATION",
-"description": "Sticky navigation with smooth scroll anchors to page sections"
+"description": "Navigation bar must be a root-level component at y:0, never nested inside any wrapper, so it renders at the top of the canvas"
 },
 {
 "type": "VISUAL_HIERARCHY",
@@ -62,6 +84,10 @@ User Requirement: "Build a personal portfolio website"
 {
 "type": "CONTENT",
 "description": "Projects section displaying 6-12 portfolio items with thumbnails and descriptions"
+},
+{
+"type": "BRANDING",
+"description": "Consistent color palette and typography scale applied across all sections"
 }
 ]
 

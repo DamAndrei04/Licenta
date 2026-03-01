@@ -35,7 +35,9 @@ public class ComponentGenerator {
         String llmResponse = anthropicClient.sendMessage(prompt);
         
         List<UIComponentNode> rootNodes = parseComponentsFromLLMResponse(llmResponse);
-        
+
+        log.error("RAW LLM RESPONSE:\n{}", llmResponse);
+
         return UIComponentTree.builder()
                 .treeId(UUID.randomUUID().toString())
                 .planId(plan.getPlanId())

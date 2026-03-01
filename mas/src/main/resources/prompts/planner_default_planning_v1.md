@@ -11,12 +11,38 @@ Generate a sequential, actionable plan to build the UI based on extracted goals 
 - **ESTABLISH_HIERARCHY**: Set up parent-child relationships and nesting
 - **VALIDATE_CONSTRAINT**: Check that a specific constraint is satisfied
 
+# CANVAS ARCHITECTURE (CRITICAL - MUST UNDERSTAND)
+The rendering system uses a whiteboard-based absolute positioning model:
+- The whiteboard IS the scrollable viewport
+- ALL components use absolute pixel positioning relative to their parent or the canvas
+- There is NO fixed positioning support
+- Major sections must be ROOT-LEVEL components, never wrapped in a global container
+
 # PLANNING PRINCIPLES
 1. **Start with structure**: Create layout containers first
 2. **Build hierarchically**: Parent components before children
 3. **Layer progressively**: Structure → Layout → Styling → Validation
 4. **Be specific**: Each step should create ONE identifiable component/section
 5. **Consider dependencies**: Later steps may depend on earlier ones
+
+
+# CRITICAL PLANNING RULES
+1. NEVER plan a "main container", "app wrapper", or "page wrapper" step that holds all sections
+2. Each major section (navbar, hero, product grid, footer, sidebar) is its own independent root component
+3. The FIRST step must always be the navbar or header as a standalone root component at y:0
+4. Sections are stacked by incrementing y values — each section's y equals the sum of all previous sections' heights:
+    - Navbar:          y=0,   height=80
+    - Hero:            y=80,  height=400
+    - Next section:    y=480, height=...
+    - And so on
+5. Children are only nested inside their direct parent section, never shared across sections
+6. Internal children of a section (cards, labels, buttons, inputs) are nested within that section only
+
+# FORBIDDEN STEP — NEVER GENERATE THIS
+{
+"type": "CREATE_COMPONENT",
+"description": "Create main page container / app wrapper / root container that holds all sections"
+}
 
 # OUTPUT FORMAT
 Return a valid JSON array with NO markdown formatting, NO code blocks, NO explanations.
@@ -36,7 +62,7 @@ Each step object must have EXACTLY these fields:
 - Each step must be CONCRETE and ACTIONABLE
 - Steps should create REAL, NAMED components (e.g., "Create restaurant card grid", not "Create main section")
 - Consider the application domain when naming components
-- Order steps logically (container → children → styling → validation)
+- Order steps logically: root sections first → children inside sections → styling → validation
 
 # EXAMPLE INPUT
 Goals:
@@ -45,7 +71,6 @@ Goals:
 - VISUAL_HIERARCHY: Highlight featured courses prominently (Priority: HIGH)
 
 Constraints:
-- RESPONSIVENESS: Must adapt to mobile, tablet, desktop
 - CONTENT: Display course title, instructor, rating, price
 - LAYOUT: Grid layout with 1-4 columns based on viewport
 
@@ -53,39 +78,39 @@ Constraints:
 [
 {
 "type": "CREATE_COMPONENT",
-"description": "Create main page container with responsive width constraints"
+"description": "Create navbar as a root-level component at y:0, height:80, containing logo, navigation links, and account button"
 },
 {
 "type": "CREATE_COMPONENT",
-"description": "Create navigation header with logo and category filters"
+"description": "Create hero banner section as a root-level component at y:80, height:360, with headline, subtitle, and call-to-action button"
 },
 {
 "type": "CREATE_COMPONENT",
-"description": "Create featured courses hero section with large course cards"
+"description": "Create course catalog section as a root-level component at y:440, containing a 3-column grid of course cards"
 },
 {
 "type": "CREATE_COMPONENT",
-"description": "Create course catalog grid container with responsive columns"
+"description": "Create individual course card with image placeholder, title, instructor name, star rating, and price label"
 },
 {
 "type": "CREATE_COMPONENT",
-"description": "Create individual course card component with image, title, instructor, rating, and price"
+"description": "Create footer section as a root-level component below the catalog, containing links and copyright label"
 },
 {
 "type": "APPLY_LAYOUT",
-"description": "Apply flexbox/grid layout to course catalog for responsive 1-4 column adaptation"
+"description": "Position course cards in a 3-column grid inside the catalog section using static x offsets of 0, 400, 800"
 },
 {
 "type": "APPLY_STYLING",
-"description": "Apply brand colors, typography hierarchy, and spacing to all components"
+"description": "Apply brand color palette, typography hierarchy (32px headings, 16px body), and card shadows across all sections"
 },
 {
 "type": "ESTABLISH_HIERARCHY",
-"description": "Nest course cards within catalog grid, header at top, featured section below header"
+"description": "Nest course cards inside catalog section, nest hero content inside hero banner — no cross-section nesting"
 },
 {
 "type": "VALIDATE_CONSTRAINT",
-"description": "Verify responsive breakpoints work correctly at 320px, 768px, 1024px, 1440px"
+"description": "Verify no single wrapper container exists and all major sections have parentId null"
 }
 ]
 
