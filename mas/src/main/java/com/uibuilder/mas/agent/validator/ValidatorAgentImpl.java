@@ -43,9 +43,14 @@ public class ValidatorAgentImpl implements ValidatorAgent {
         }
         
         // Basic structural validation
-        if (componentTree.getRootNodes().isEmpty()) {
-            violations.add("Component tree has no root nodes");
+        if (componentTree.getPages().isEmpty()) {
+            violations.add("Component tree has no pages");
         }
+        componentTree.getPages().forEach(page -> {
+            if (page.getComponents().isEmpty()) {
+                violations.add("Page '" + page.getName() + "' has no components");
+            }
+        });
         
         boolean isValid = violations.isEmpty();
         
@@ -60,7 +65,7 @@ public class ValidatorAgentImpl implements ValidatorAgent {
         String messageJson = jsonUtils.toJson(messagePayload);
         
         log.info("\n" + "=".repeat(80));
-        log.info("✅ VALIDATOR AGENT MESSAGE:");
+        log.info(" VALIDATOR AGENT MESSAGE:");
         log.info("=".repeat(80));
         log.info(messageJson);
         log.info("=".repeat(80) + "\n");

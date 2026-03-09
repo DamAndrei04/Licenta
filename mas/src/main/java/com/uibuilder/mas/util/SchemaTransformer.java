@@ -29,42 +29,48 @@ public class SchemaTransformer {
      */
     public UIDescriptor transform(UIComponentTree tree) {
         log.info("Transforming UIComponentTree to ui-descriptor-v1.json schema");
-        
+
         UIDescriptor descriptor = new UIDescriptor();
         descriptor.setVersion("1.0");
         descriptor.setExportedAt(Instant.now());
-        descriptor.setActivePageId("page-home");
-        
-        // Create single page with all components
-        Map<String, PageDescriptor> pages = new HashMap<>();
-        PageDescriptor page = transformToPage(tree);
-        pages.put("page-home", page);
-        
+
+        Map<String, PageDescriptor> pages = new LinkedHashMap<>();
+
+        tree.getPages().forEach(builtPage -> {
+            String pageId = "page-" + builtPage.getRoute()
+                    .replace("/", "")
+                    .replace(":", "")
+                    .replace("-", "");
+            if (pageId.equals("page-")) pageId = "page-home";
+
+            PageDescriptor pageDescriptor = transformToPage(builtPage);
+            pages.put(pageId, pageDescriptor);
+        });
+
+        // Set first page as active
+        descriptor.setActivePageId(pages.keySet().iterator().next());
         descriptor.setPages(pages);
-        
-        log.info("Transformed tree with {} components into schema-compliant descriptor", 
-                page.getDroppedItems().size());
-        
+
+        log.info("Transformed {} pages into schema-compliant descriptor", pages.size());
         return descriptor;
     }
-    
-    private PageDescriptor transformToPage(UIComponentTree tree) {
+
+    private PageDescriptor transformToPage(com.uibuilder.mas.agent.builder.model.UIBuiltPage builtPage) {
         PageDescriptor page = new PageDescriptor();
-        page.setName("Home");
-        page.setRoute("/");
+        page.setName(builtPage.getName());
+        page.setRoute(builtPage.getRoute());
         page.setSelectedId(null);
-        
-        // Flatten the tree into droppedItems map
+
         Map<String, ComponentDescriptor> droppedItems = new LinkedHashMap<>();
         List<String> rootIds = new ArrayList<>();
-        
-        for (UIComponentNode rootNode : tree.getRootNodes()) {
+
+        for (UIComponentNode rootNode : builtPage.getComponents()) {
             flattenNode(rootNode, droppedItems, rootIds, null);
         }
-        
+
         page.setDroppedItems(droppedItems);
         page.setRootIds(rootIds);
-        
+
         return page;
     }
     

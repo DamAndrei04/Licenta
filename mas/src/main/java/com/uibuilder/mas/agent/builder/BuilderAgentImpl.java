@@ -39,8 +39,14 @@ public class BuilderAgentImpl implements BuilderAgent {
         // Create final JSON representation
         Map<String, Object> messagePayload = Map.of(
                 "treeId", tree.getTreeId(),
-                "componentCount", tree.getAllNodes().size(),
-                "components", tree.getRootNodes().stream().map(node -> buildNodeMap(node)).toList()
+                "pageCount", tree.getPages().size(),
+                "pages", tree.getPages().stream().map(page -> Map.of(
+                        "name", page.getName(),
+                        "route", page.getRoute(),
+                        "componentCount", page.getComponents().size(),
+                        "components", page.getComponents().stream()
+                                .map(this::buildNodeMap).toList()
+                )).toList()
         );
         
         String messageJson = jsonUtils.toJson(messagePayload);
@@ -62,8 +68,8 @@ public class BuilderAgentImpl implements BuilderAgent {
                 .build();
         
         blackboard.storeMessage(message);
-        
-        log.info("[{}] Built component tree with {} nodes", agentId, tree.getAllNodes().size());
+
+        log.info("[{}] Built {} pages", agentId, tree.getPages().size());
         return tree;
     }
     

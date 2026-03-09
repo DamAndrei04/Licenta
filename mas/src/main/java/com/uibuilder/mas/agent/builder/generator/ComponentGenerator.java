@@ -2,8 +2,10 @@ package com.uibuilder.mas.agent.builder.generator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uibuilder.mas.agent.builder.model.UIBuiltPage;
 import com.uibuilder.mas.agent.builder.model.UIComponentNode;
 import com.uibuilder.mas.agent.builder.model.UIComponentTree;
+import com.uibuilder.mas.agent.planner.model.UIPage;
 import com.uibuilder.mas.agent.planner.model.UIPlan;
 import com.uibuilder.mas.client.AnthropicClient;
 import com.uibuilder.mas.prompt.PromptLoader;
@@ -27,33 +29,59 @@ public class ComponentGenerator {
     private final ObjectMapper objectMapper;
     private final PromptLoader promptLoader;
     private final PromptRenderer promptRenderer;
-    
-    public UIComponentTree generate(UIPlan plan) {
-        log.debug("Generating components from plan: {}", plan.getPlanId());
-        
-        String prompt = buildComponentGenerationPrompt(plan);
-        String llmResponse = anthropicClient.sendMessage(prompt);
-        
-        List<UIComponentNode> rootNodes = parseComponentsFromLLMResponse(llmResponse);
 
-        log.error("RAW LLM RESPONSE:\n{}", llmResponse);
+    public UIComponentTree generate(UIPlan plan) {
+        log.debug("Generating pages from plan: {}", plan.getPlanId());
+
+        List<UIBuiltPage> builtPages = new ArrayList<>();
+        List<UIPage> pages = plan.getPages();
+
+        for (int i = 0; i < pages.size(); i++) {
+            UIPage page = pages.get(i);
+            log.info("Generating page {}/{} '{}' ({})", i + 1, pages.size(), page.getName(), page.getRoute());
+
+            String prompt = buildPromptForPage(page);
+            String llmResponse = anthropicClient.sendMessage(prompt);
+            log.debug("RAW LLM RESPONSE (page: {}):\n{}", page.getName(), llmResponse);
+
+            List<UIComponentNode> pageNodes = parseComponentsFromLLMResponse(llmResponse);
+
+            builtPages.add(UIBuiltPage.builder()
+                    .name(page.getName())
+                    .route(page.getRoute())
+                    .components(pageNodes)
+                    .build());
+
+            // Wait between pages to avoid hitting OTPM rate limit
+            if (i < pages.size() - 1) {
+                try {
+                    log.info("Waiting 30s before next page to respect OTPM rate limit...");
+                    Thread.sleep(30_000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.warn("Page generation sleep interrupted");
+                }
+            }
+        }
 
         return UIComponentTree.builder()
                 .treeId(UUID.randomUUID().toString())
                 .planId(plan.getPlanId())
                 .builtAt(Instant.now())
-                .rootNodes(rootNodes)
+                .pages(builtPages)
                 .build();
     }
     
-    private String buildComponentGenerationPrompt(UIPlan plan) {
-        String stepsStr = plan.getSteps().stream()
+    private String buildPromptForPage(UIPage page) {
+        String stepsStr = page.getSteps().stream()
                 .map(s -> String.format("%d. [%s] %s", s.getOrder(), s.getType(), s.getDescription()))
                 .reduce("", (a, b) -> a + "\n" + b);
 
         String template = promptLoader.load("builder_component_generation_v1.md");
 
         return promptRenderer.render(template, Map.of(
+                "PAGE_NAME", page.getName(),
+                "PAGE_ROUTE", page.getRoute(),
                 "PLAN_STEPS", stepsStr
         ));
 

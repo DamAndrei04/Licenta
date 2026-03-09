@@ -43,47 +43,47 @@ public class MasApplication {
     public CommandLineRunner runMAS() {
         return args -> {
             // Example user requirement
-            String userRequirement = "Build an interface for an online store. I want a navbar at the top with search bar. Underneath a hero section displaying infos about my product. Right underneath a feedbacks section and under it the actual products displayed. The products needs to be displayed in a 3x3 grid containing price, description and name.";
+            String userRequirement = "Build a movie-review platform where users can leave a feedback and a comment for their favourite movies. Include profile page for user accounts too.";
 
 
         
             log.info("\n" + "=".repeat(80));
-            log.info("🚀 STARTING MULTI-AGENT SYSTEM");
+            log.info("STARTING MULTI-AGENT SYSTEM");
             log.info("=".repeat(80));
             log.info("User Requirement: {}", userRequirement);
             log.info("=".repeat(80) + "\n");
         
             try {
                 // Phase 1: Analyst
-                log.info("📊 Phase 1: Analysis");
+                log.info(" Phase 1: Analysis");
                 AnalyzedUIModel analyzedModel = analystAgent.analyze(userRequirement);
             
                 // Phase 2: Planner
-                log.info("\n📋 Phase 2: Planning");
+                log.info("\n Phase 2: Planning");
                 UIPlan plan = plannerAgent.createPlan(analyzedModel);
             
                 // Phase 3: Builder
-                log.info("\n🏗️ Phase 3: Building");
+                log.info("\n🏗 Phase 3: Building");
                 UIComponentTree componentTree = builderAgent.build(plan);
             
                 // Phase 4: Validator
-                log.info("\n✅ Phase 4: Validation");
+                log.info("\nPhase 4: Validation");
                 ValidationResult validationResult = validatorAgent.validate(componentTree);
             
                 // Phase 5: Transform to schema-compliant format
-                log.info("\n🔄 Phase 5: Schema Transformation");
+                log.info("\n Phase 5: Schema Transformation");
                 UIDescriptor finalDescriptor = schemaTransformer.transform(componentTree);
             
                 // Final Output
                 log.info("\n" + "=".repeat(80));
-                log.info("🎉 FINAL UI DESCRIPTOR JSON (ui-descriptor-v1.json compliant):");
+                log.info(" FINAL UI DESCRIPTOR JSON (ui-descriptor-v1.json compliant):");
                 log.info("=".repeat(80));
             
                 String finalJson = jsonUtils.toJson(finalDescriptor);
                 System.out.println(finalJson);
             
                 log.info("\n" + "=".repeat(80));
-                log.info("✅ MAS EXECUTION COMPLETE");
+                log.info("MAS EXECUTION COMPLETE");
                 log.info("=".repeat(80));
                 log.info("Status: {}", validationResult.isValid() ? "SUCCESS" : "COMPLETED WITH WARNINGS");
                 log.info("Total Messages: {}", blackboard.getAllMessages().size());

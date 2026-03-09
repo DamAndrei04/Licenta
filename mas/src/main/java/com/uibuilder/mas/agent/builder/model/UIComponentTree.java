@@ -15,13 +15,14 @@ public class UIComponentTree {
     String treeId;
     String planId;
     Instant builtAt;
-    List<UIComponentNode> rootNodes;
+    List<UIBuiltPage> pages;
     
     /**
      * Get all nodes in the tree (flattened).
      */
     public List<UIComponentNode> getAllNodes() {
-        return rootNodes.stream()
+        return pages.stream()
+                .flatMap(page -> page.getComponents().stream())
                 .flatMap(node -> node.flattenHierarchy().stream())
                 .toList();
     }
