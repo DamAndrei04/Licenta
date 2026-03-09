@@ -25,6 +25,6 @@ public class PlanStep {
         APPLY_LAYOUT,
         APPLY_STYLING,
         ESTABLISH_HIERARCHY,
-        VALIDATE_CONSTRAINT
+        VALIDATE_CONSTRAINT,
     }
 }

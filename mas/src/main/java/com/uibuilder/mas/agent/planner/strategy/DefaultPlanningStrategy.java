@@ -1,7 +1,9 @@
 package com.uibuilder.mas.agent.planner.strategy;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.uibuilder.mas.agent.analyst.model.AnalyzedUIModel;
 import com.uibuilder.mas.agent.planner.model.PlanStep;
+import com.uibuilder.mas.agent.planner.model.UIPage;
 import com.uibuilder.mas.agent.planner.model.UIPlan;
 import com.uibuilder.mas.client.AnthropicClient;
 import com.uibuilder.mas.prompt.PromptLoader;
@@ -39,14 +41,14 @@ public class DefaultPlanningStrategy {
         String prompt = buildPlanningPrompt(analyzedModel);
         String llmResponse = anthropicClient.sendMessage(prompt);
         
-        List<PlanStep> steps = parseStepsFromLLMResponse(llmResponse);
+        List<UIPage> pages = parsePagesFromLLMResponse(llmResponse);
         
         return UIPlan.builder()
                 .planId(UUID.randomUUID().toString())
                 .analysisId(analyzedModel.getAnalysisId())
                 .createdAt(Instant.now())
-                .steps(steps)
-                .estimatedComplexity(steps.size())
+                .pages(pages)
+                .estimatedComplexity(pages.size())
                 .build();
     }
     
@@ -98,51 +100,60 @@ public class DefaultPlanningStrategy {
                 Return ONLY the JSON array, no additional text.
                 """, goalsStr, constraintsStr);*/
     }
-    
-    private List<PlanStep> parseStepsFromLLMResponse(String llmResponse) {
+
+    private List<UIPage> parsePagesFromLLMResponse(String llmResponse) {
         try {
             String jsonStr = extractJson(llmResponse);
-            
-            List<Map<String, String>> stepMaps = objectMapper.readValue(
-                    jsonStr,
-                    new TypeReference<List<Map<String, String>>>() {}
-            );
-            
-            List<PlanStep> steps = new ArrayList<>();
-            int order = 0;
-            
-            for (Map<String, String> stepMap : stepMaps) {
-                PlanStep.StepType stepType;
-                try {
-                    stepType = PlanStep.StepType.valueOf(stepMap.getOrDefault("type", "CREATE_COMPONENT"));
-                } catch (IllegalArgumentException e) {
-                    stepType = PlanStep.StepType.CREATE_COMPONENT;
+            JsonNode root = objectMapper.readTree(jsonStr);
+            JsonNode pagesNode = root.path("pages");
+
+            List<UIPage> pages = new ArrayList<>();
+
+            for (JsonNode pageNode : pagesNode) {
+                List<PlanStep> steps = new ArrayList<>();
+                int order = 0;
+
+                for (JsonNode stepNode : pageNode.path("steps")) {
+                    PlanStep.StepType stepType;
+                    try {
+                        stepType = PlanStep.StepType.valueOf(
+                                stepNode.path("type").asText("CREATE_COMPONENT")
+                        );
+                    } catch (IllegalArgumentException e) {
+                        stepType = PlanStep.StepType.CREATE_COMPONENT;
+                    }
+
+                    steps.add(PlanStep.builder()
+                            .stepId(UUID.randomUUID().toString())
+                            .order(order++)
+                            .type(stepType)
+                            .description(stepNode.path("description").asText("Unknown step"))
+                            .parameters(Map.of())
+                            .build());
                 }
-                
-                PlanStep step = PlanStep.builder()
-                        .stepId(UUID.randomUUID().toString())
-                        .order(order++)
-                        .type(stepType)
-                        .description(stepMap.getOrDefault("description", "Unknown step"))
-                        //.dependencies(List.of())
-                        .parameters(Map.of())
-                        .build();
-                
-                steps.add(step);
+
+                pages.add(UIPage.builder()
+                        .name(pageNode.path("name").asText("Page"))
+                        .route(pageNode.path("route").asText("/"))
+                        .steps(steps)
+                        .build());
             }
-            
-            log.info("Successfully parsed {} steps from LLM response", steps.size());
-            return steps;
-            
+
+            log.info("Parsed {} pages from LLM response", pages.size());
+            return pages;
+
         } catch (Exception e) {
-            log.error("Failed to parse steps from LLM response", e);
-            return List.of(PlanStep.builder()
-                    .stepId(UUID.randomUUID().toString())
-                    .order(0)
-                    .type(PlanStep.StepType.CREATE_COMPONENT)
-                    .description("Create basic UI structure")
-                    //.dependencies(List.of())
-                    .parameters(Map.of())
+            log.error("Failed to parse pages from LLM response", e);
+            return List.of(UIPage.builder()
+                    .name("Home")
+                    .route("/")
+                    .steps(List.of(PlanStep.builder()
+                            .stepId(UUID.randomUUID().toString())
+                            .order(0)
+                            .type(PlanStep.StepType.CREATE_COMPONENT)
+                            .description("Create basic UI structure")
+                            .parameters(Map.of())
+                            .build()))
                     .build());
         }
     }

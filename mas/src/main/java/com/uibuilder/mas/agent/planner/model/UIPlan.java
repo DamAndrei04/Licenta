@@ -15,6 +15,6 @@ public class UIPlan {
     String planId;
     String analysisId;
     Instant createdAt;
-    List<PlanStep> steps;
+    List<UIPage> pages;
     int estimatedComplexity;
 }

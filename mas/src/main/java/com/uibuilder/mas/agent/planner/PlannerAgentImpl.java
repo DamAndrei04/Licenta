@@ -38,12 +38,11 @@ public class PlannerAgentImpl implements PlannerAgent {
         // Create message for next agent
         Map<String, Object> messagePayload = Map.of(
                 "planId", plan.getPlanId(),
-                "stepCount", plan.getSteps().size(),
-                "steps", plan.getSteps().stream().map(step -> Map.of(
-                        "stepId", step.getStepId(),
-                        "order", step.getOrder(),
-                        "type", step.getType().toString(),
-                        "description", step.getDescription()
+                "pageCount", plan.getPages().size(),
+                "pages", plan.getPages().stream().map(page -> Map.of(
+                        "name", page.getName(),
+                        "route", page.getRoute(),
+                        "stepCount", page.getSteps().size()
                 )).toList()
         );
         
@@ -68,7 +67,7 @@ public class PlannerAgentImpl implements PlannerAgent {
         blackboard.getPlanningMemory().storePlan(plan);
         blackboard.storeMessage(message);
         
-        log.info("[{}] Plan created with {} steps", agentId, plan.getSteps().size());
+        log.info("[{}] Plan created with {} pages", agentId, plan.getPages().size());
         return plan;
     }
     

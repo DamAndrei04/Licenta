@@ -24,7 +24,8 @@ Extract ALL design and business goals from the user requirement. Goals are desir
 2. **Extract user experience goals** (e.g., simplify checkout, reduce friction)
 3. **Determine technical goals** (e.g., fast load times, smooth animations)
 4. **Infer domain-specific goals** based on application type
-5. **Always include the structural layout goal** to enforce correct canvas rendering
+5. **Determine how many pages the application needs** — most apps require at least 2-3 pages (e.g., Home, Detail, Checkout; or Dashboard, Profile, Settings)
+6. **Always include the structural layout goal** to enforce correct canvas rendering
 
 # OUTPUT FORMAT
 Return a valid JSON array with NO markdown formatting, NO code blocks, NO explanations.
@@ -44,12 +45,20 @@ Each goal object must have EXACTLY these fields:
 - Make goals MEASURABLE when possible
 - Align with the application domain
 - At least 2-3 goals should be CRITICAL priority
+- **Always plan for multiple pages** — identify which distinct pages the app needs and name them explicitly in the NAVIGATION goal
 
-# MANDATORY GOAL (ALWAYS INCLUDE)
-Always include this goal regardless of the requirement:
+# MANDATORY GOALS (ALWAYS INCLUDE BOTH)
+Always include these two goals regardless of the requirement:
+
 {
 "type": "LAYOUT",
-"description": "Major page sections (navbar, hero, content, footer) must be independent root-level components stacked vertically by y-coordinate, with no single wrapper container grouping them all together",
+"description": "Every page must have a footer as an independent root-level component containing relevant links, copyright info, and brand details. Major page sections (navbar, hero, content areas, footer) must be independent root-level components stacked vertically by y-coordinate, with no single wrapper container grouping them all together.",
+"priority": "CRITICAL"
+}
+
+{
+"type": "NAVIGATION",
+"description": "The application must consist of multiple pages (e.g., Home, Detail/Item page, and at least one secondary page such as Checkout, Profile, or Dashboard). Each page must have its own route and a persistent navbar enabling navigation between all pages.",
 "priority": "CRITICAL"
 }
 
@@ -81,6 +90,11 @@ User Requirement: "Build an online learning platform"
 {
 "type": "VISUAL_HIERARCHY",
 "description": "Highlight course progress, completion status, and next lessons prominently",
+"priority": "HIGH"
+},
+{
+"type": "DATA_FLOW",
+"description": "Course catalog page displays filterable grid of courses; Course Detail page shows full curriculum, instructor bio, and enrollment CTA",
 "priority": "HIGH"
 }
 ]
