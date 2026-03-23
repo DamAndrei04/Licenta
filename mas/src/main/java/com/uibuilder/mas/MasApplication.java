@@ -43,8 +43,7 @@ public class MasApplication {
     public CommandLineRunner runMAS() {
         return args -> {
             // Example user requirement
-            String userRequirement = "Build a movie-review platform where users can leave a feedback and a comment for their favourite movies. Include profile page for user accounts too.";
-
+            String userRequirement = "";
 
         
             log.info("\n" + "=".repeat(80));
@@ -63,7 +62,7 @@ public class MasApplication {
                 UIPlan plan = plannerAgent.createPlan(analyzedModel);
             
                 // Phase 3: Builder
-                log.info("\n🏗 Phase 3: Building");
+                log.info("\n Phase 3: Building");
                 UIComponentTree componentTree = builderAgent.build(plan);
             
                 // Phase 4: Validator

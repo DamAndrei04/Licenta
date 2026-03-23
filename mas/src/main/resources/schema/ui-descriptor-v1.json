@@ -219,17 +219,12 @@
       "properties": {
         "backgroundColor": {
           "type": "string",
-          "description": "Background color (hex, rgb, rgba, gradient, or named color)"
-        },
-
-        "backgroundImage": {
-          "type": "string",
-          "description": "Background image or gradient (e.g., 'linear-gradient(...)')"
+          "description": "Background color (rgb, rgba, or named color). Can be applied  to card, label, button."
         },
 
         "color": {
           "type": "string",
-          "description": "Text color (hex, rgb, rgba, or named color)"
+          "description": "Text color (rgb, rgba, or named color)"
         },
 
         "borderColor": {
@@ -255,7 +250,7 @@
 
         "border": {
           "type": "string",
-          "description": "Border shorthand (e.g., '3px solid #667eea')"
+          "description": "Border shorthand (e.g., '3px solid rgba(0 0 0 0)')"
         },
 
         "padding": {

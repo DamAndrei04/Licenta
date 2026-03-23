@@ -52,7 +52,7 @@ public class BuilderAgentImpl implements BuilderAgent {
         String messageJson = jsonUtils.toJson(messagePayload);
         
         log.info("\n" + "=".repeat(80));
-        log.info("🏗️ BUILDER AGENT MESSAGE:");
+        log.info(" BUILDER AGENT MESSAGE:");
         log.info("=".repeat(80));
         log.info(messageJson);
         log.info("=".repeat(80) + "\n");
