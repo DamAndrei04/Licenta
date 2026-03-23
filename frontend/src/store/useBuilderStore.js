@@ -148,26 +148,38 @@ const useBuilderStore = create(
                     });
                 }
             },
-
+            // deletes children recursively when parent is deleted
             deleteItem: (id) => {
                 set((state) => {
-                   const page = state.pages[state.activePageId];
-                   const { [id]: removed, ...rest } = page.droppedItems;
+                    const page = state.pages[state.activePageId];
+                    const items = { ...page.droppedItems };
 
-                   const rootIds = page.rootIds.filter((rootId) => rootId !== id );
-                   const selectedId = page.selectedId === id ? null : page.selectedId;
+                    const deleteRecursively = (itemId) => {
+                        Object.values(items).forEach((item) => {
+                            if (item.parentId === itemId) {
+                                deleteRecursively(item.id);
+                            }
+                        });
 
-                   return {
-                       pages: {
-                           ...state.pages,
-                           [state.activePageId]: {
-                               ...page,
-                               droppedItems: rest,
-                               rootIds,
-                               selectedId,
-                           }
-                       }
-                   }
+                        delete items[itemId];
+                    };
+
+                    deleteRecursively(id);
+
+                    const rootIds = page.rootIds.filter((rootId) => rootId !== id);
+                    const selectedId = page.selectedId === id ? null : page.selectedId;
+
+                    return {
+                        pages: {
+                            ...state.pages,
+                            [state.activePageId]: {
+                                ...page,
+                                droppedItems: items,
+                                rootIds,
+                                selectedId,
+                            },
+                        },
+                    };
                 });
             },
 

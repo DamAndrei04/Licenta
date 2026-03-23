@@ -38,6 +38,23 @@ const Background = ({ selectedElement, updateItem }) => {
                 };
             }
         }
+
+        if (colorString.startsWith('#')) { // support for HEX format
+            let hex = colorString.slice(1);
+            if (hex.length === 3) {
+                hex = hex.split('').map(c => c + c).join('');
+            }
+            if (hex.length === 6) hex += 'ff';
+            if (hex.length === 8) {
+                return {
+                    r: parseInt(hex.slice(0, 2), 16),
+                    g: parseInt(hex.slice(2, 4), 16),
+                    b: parseInt(hex.slice(4, 6), 16),
+                    a: Math.round((parseInt(hex.slice(6, 8), 16) / 255) * 100) / 100
+                };
+            }
+        }
+
         return { r: 255, g: 255, b: 255, a: 1 };
     };
 

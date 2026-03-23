@@ -4,6 +4,7 @@ import ResizeHandle from "../resizeHandlers/ResizeHandle";
 import "./DroppedItem.css";
 import { useDrop } from "react-dnd";
 import RightClickMenu from "../rightClickMenu/RightClickMenu";
+import { getEffectiveBackground } from '@/utils/EffectiveBackground';
 
 const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateItem, selectedId, canvasRef, deleteItem }) => {
 
@@ -25,7 +26,7 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
     const parent = item.parentId ? allItems[item.parentId] : null;
     const parentWidth = parent ? (parent.layout.width || ComponentRegistry[parent.type]?.defaultSize.width) : null;
     const parentHeight = parent ? (parent.layout.height || ComponentRegistry[parent.type]?.defaultSize.height) : null;
-
+    
     const [{ isOver }, drop] = useDrop(() => ({
         accept: ["COMPONENT", "DROPPED_ITEM"],
         canDrop: () => canHaveChildren,
@@ -171,6 +172,9 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                 width: renderLayout.width,
                 height: renderLayout.height,
                 border: 'none',
+                backgroundColor: mergedProps.style?.backgroundColor
+                    ? undefined
+                    : getEffectiveBackground(item.id, allItems)
             }}
         >
             <div
@@ -190,19 +194,22 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                         }}
                     >
                         <Component {...mergedProps} />
-                        {children.map((child) => (
-                            <DroppedItem
-                                key={child.id}
-                                item={child}
-                                allItems={allItems}
-                                getChildren={getChildren}
-                                onDrop={onDrop}
-                                selectItem={selectItem}
-                                updateItem={updateItem}
-                                selectedId={selectedId}
-                                canvasRef={canvasRef}
-                            />
-                        ))}
+                        {children
+                            .filter(child => child !== undefined && child !== null)
+                            .map((child) => (
+                                <DroppedItem
+                                    key={child.id}
+                                    item={child}
+                                    allItems={allItems}
+                                    getChildren={getChildren}
+                                    onDrop={onDrop}
+                                    selectItem={selectItem}
+                                    updateItem={updateItem}
+                                    selectedId={selectedId}
+                                    canvasRef={canvasRef}
+                                    deleteItem={deleteItem}
+                                />
+                            ))}
                     </div>
                 ) : (
                     <Component
