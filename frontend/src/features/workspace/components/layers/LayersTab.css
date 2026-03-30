@@ -9,3 +9,9 @@
     margin: 0 0 1rem 0;
     color: #333;
 }
+
+.layersTab {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}

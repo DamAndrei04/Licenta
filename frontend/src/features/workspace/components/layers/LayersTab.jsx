@@ -10,7 +10,7 @@ const LayersTab = () => {
     const { rootIds } = page;
 
     return (
-        <div>
+        <div className="layersTab">
             <label>LAYERS</label>
             {rootIds.map(rootId => (
                 <ComponentsTree key={rootId} nodeId={rootId} />
