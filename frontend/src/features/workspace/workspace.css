@@ -16,7 +16,18 @@
     gap: 1rem;
     height: calc(100vh - 120px);
     padding: 1rem;
+    min-height: 0;
 }
 
+.pagesAndLayerTab {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
 
+.customizeTab,
+.customizeTab-empty {
+    min-height: 0;
+    overflow-y: auto;
+}
 
