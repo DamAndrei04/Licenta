@@ -32,7 +32,7 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/user/**").permitAll()       // allow POST /user
+                        .requestMatchers(HttpMethod.POST, "/user", "/user/**").permitAll()       // allow POST /user
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/user").permitAll() // swagger
                         .anyRequest().authenticated()                               // everything else requires login
                 )

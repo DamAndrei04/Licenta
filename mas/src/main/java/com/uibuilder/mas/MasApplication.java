@@ -1,17 +1,17 @@
 package com.uibuilder.mas;
 
-import com.uibuilder.mas.agent.analyst.AnalystAgent;
-import com.uibuilder.mas.agent.analyst.model.AnalyzedUIModel;
-import com.uibuilder.mas.agent.builder.BuilderAgent;
-import com.uibuilder.mas.agent.builder.model.UIComponentTree;
-import com.uibuilder.mas.agent.planner.PlannerAgent;
-import com.uibuilder.mas.agent.planner.model.UIPlan;
-import com.uibuilder.mas.agent.validator.ValidatorAgent;
-import com.uibuilder.mas.agent.validator.ValidationResult;
-import com.uibuilder.mas.descriptor.UIDescriptor;
-import com.uibuilder.mas.memory.Blackboard;
-import com.uibuilder.mas.util.JsonUtils;
-import com.uibuilder.mas.util.SchemaTransformer;
+import com.uibuilder.mas.agent.agent.analyst.AnalystAgent;
+import com.uibuilder.mas.agent.agent.analyst.model.AnalyzedUIModel;
+import com.uibuilder.mas.agent.agent.builder.BuilderAgent;
+import com.uibuilder.mas.agent.agent.builder.model.UIComponentTree;
+import com.uibuilder.mas.agent.agent.planner.PlannerAgent;
+import com.uibuilder.mas.agent.agent.planner.model.UIPlan;
+import com.uibuilder.mas.agent.agent.validator.ValidatorAgent;
+import com.uibuilder.mas.agent.agent.validator.ValidationResult;
+import com.uibuilder.mas.agent.descriptor.UIDescriptor;
+import com.uibuilder.mas.agent.memory.Blackboard;
+import com.uibuilder.mas.agent.util.JsonUtils;
+import com.uibuilder.mas.agent.util.SchemaTransformer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -39,7 +39,7 @@ public class MasApplication {
         SpringApplication.run(MasApplication.class, args);
     }
 
-    @Bean
+    /*@Bean
     public CommandLineRunner runMAS() {
         return args -> {
             // Example user requirement
@@ -94,7 +94,7 @@ public class MasApplication {
                 System.exit(1);
             }
         };
-    }
+    }*/
 }
 
 
