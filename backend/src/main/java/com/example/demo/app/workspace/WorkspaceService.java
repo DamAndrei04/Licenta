@@ -1,8 +1,11 @@
 package com.example.demo.app.workspace;
 
 import com.example.demo.api.dto.component.ComponentRequestDto;
+import com.example.demo.api.dto.component.enums.ComponentType;
 import com.example.demo.api.dto.page.PageRequestDto;
 import com.example.demo.api.dto.page.PageResponseDto;
+import com.example.demo.api.dto.workspace.DroppedItemDto;
+import com.example.demo.api.dto.workspace.PageImportDto;
 import com.example.demo.api.dto.workspace.WorkspaceRequestDto;
 import com.example.demo.api.dto.workspace.WorkspaceResponseDto;
 import com.example.demo.api.exception.PageNotFoundException;
@@ -32,63 +35,70 @@ public class WorkspaceService {
 
     private final PageService pageService;
     private final ComponentService componentService;
-    private final ComponentRepository componentRepository;
     private final PageRepository pageRepository;
     private final ProjectRepository projectRepository;
 
     @Transactional
-    public WorkspaceResponseDto saveProjectState(WorkspaceRequestDto workspaceRequestDto) {
+    public WorkspaceResponseDto saveProjectState(WorkspaceRequestDto dto) {
 
-        Long projectId = workspaceRequestDto.getProjectId();
-        List<PageRequestDto> pagesRequestDto = workspaceRequestDto.getPages();
-        Map<String, List<ComponentRequestDto>> componentsByPageTempId =
-                workspaceRequestDto.getComponentsByPageTempId();
+        Long projectId = dto.getProjectId();
 
-        ProjectEntity project = projectRepository.findById(projectId)
+        projectRepository.findById(projectId)
                 .orElseThrow(() ->
-                        new ProjectNotFoundException(String.format("Project with id: %d not found", projectId)));
+                        new ProjectNotFoundException(
+                                String.format("Project with id: %d not found", projectId)));
 
         componentService.deleteComponentByProjectId(projectId);
         pageService.deletePagesByProjectId(projectId);
 
-        for(PageRequestDto pageRequestDto : pagesRequestDto){
+        for (PageImportDto pageDto : dto.getPages().values()) {
+
+            PageRequestDto pageRequestDto = PageRequestDto.builder()
+                    .name(pageDto.getName())
+                    .route(pageDto.getRoute())
+                    .build();
+
             var pageResponse = pageService.createPage(pageRequestDto, projectId);
             PageEntity page = pageRepository.findById(pageResponse.getId())
-                    .orElseThrow(() -> new PageNotFoundException(String.format("Page with id: %d not found", pageResponse.getId())));
+                    .orElseThrow(() ->
+                            new PageNotFoundException(
+                                    String.format("Page with id: %d not found", pageResponse.getId())));
 
-            // get all components for this page
-            List<ComponentRequestDto> componentRequestDtos =
-                    componentsByPageTempId.getOrDefault(pageRequestDto.getName(), List.of());
+            Map<String, DroppedItemDto> items = pageDto.getDroppedItems();
+            Map<String, ComponentEntity> idToEntity = new HashMap<>();
 
-            Map<String, ComponentEntity> tempIdToEntity = new HashMap<>();
-
-            // create root components first so parents exist in memory
-            componentRequestDtos.stream()
-                    .filter(dto -> dto.getParentExternalId() == null)
-                    .forEach(dto -> {
-                        ComponentEntity root = createComponentEntity(dto, page);
-                        tempIdToEntity.put(dto.getExternalId(), root);
+            // save root components first (parentId == null)
+            items.values().stream()
+                    .filter(item -> item.getParentId() == null)
+                    .forEach(item -> {
+                        ComponentEntity root = toEntity(item, page);
+                        idToEntity.put(item.getId(), root);
                         page.getComponents().add(root);
                     });
 
-            // add children iteratively, resolving by depth
-            Set<String> unresolved = componentRequestDtos.stream()
-                    .filter(dto -> dto.getParentExternalId() != null)
-                    .map(ComponentRequestDto::getExternalId)
+            // resolve children iteratively by depth
+            Set<String> unresolved = items.values().stream()
+                    .filter(item -> item.getParentId() != null)
+                    .map(DroppedItemDto::getId)
                     .collect(Collectors.toSet());
 
             while (!unresolved.isEmpty()) {
                 boolean progress = false;
-                for (ComponentRequestDto dto : componentRequestDtos) {
-                    if (!unresolved.contains(dto.getExternalId())) continue;
-                    if (!tempIdToEntity.containsKey(dto.getParentExternalId())) continue;
+                for (DroppedItemDto item : items.values()) {
+                    if (!unresolved.contains(item.getId())) continue;
+                    if (!idToEntity.containsKey(item.getParentId())) continue;
 
-                    addChildComponent(dto, tempIdToEntity, page);
-                    unresolved.remove(dto.getExternalId());
+                    ComponentEntity child = toEntity(item, page);
+                    ComponentEntity parent = idToEntity.get(item.getParentId());
+                    child.setParent(parent);
+                    parent.getChildren().add(child);
+                    idToEntity.put(item.getId(), child);
+                    unresolved.remove(item.getId());
                     progress = true;
                 }
                 if (!progress) {
-                    throw new IllegalStateException("Circular or broken parent reference detected: " + unresolved);
+                    throw new IllegalStateException(
+                            "Circular or broken parent reference detected: " + unresolved);
                 }
             }
 
@@ -97,42 +107,19 @@ public class WorkspaceService {
 
         return WorkspaceResponseDto.builder()
                 .succes(true)
-                .message("Workspace saved succesfully")
+                .message("Workspace saved successfully")
                 .build();
     }
 
-    private ComponentEntity createComponentEntity(ComponentRequestDto componentRequestDto, PageEntity page){
-        ComponentEntity component = new ComponentEntity();
-        component.setExternalId(componentRequestDto.getExternalId());
-        component.setType(componentRequestDto.getType());
-        component.setProps(componentRequestDto.getProps());
-        component.setLayout(componentRequestDto.getLayout());
-        component.setEvents(componentRequestDto.getEvents());
-        component.setState(componentRequestDto.getState());
-        component.setPage(page);
-        return component;
+    private ComponentEntity toEntity(DroppedItemDto dto, PageEntity page) {
+        ComponentEntity entity = new ComponentEntity();
+        entity.setExternalId(dto.getId());
+        entity.setType(ComponentType.fromString(dto.getType()));
+        entity.setProps(dto.getProps());
+        entity.setLayout(dto.getLayout());
+        entity.setEvents(dto.getEvents());
+        entity.setState(dto.getState());
+        entity.setPage(page);
+        return entity;
     }
-
-    private void addChildComponent(ComponentRequestDto componentRequestDto,
-                                              Map<String, ComponentEntity> tempIdToEntity,
-                                              PageEntity page) {
-
-        ComponentEntity parent = tempIdToEntity.get(componentRequestDto.getParentExternalId());
-        if(parent == null){
-            throw new IllegalStateException(
-                    "Parent not created yet: " + componentRequestDto.getParentExternalId()
-            );
-        }
-
-        if (tempIdToEntity.containsKey(componentRequestDto.getExternalId())) {
-            return;
-        }
-
-        ComponentEntity child = createComponentEntity(componentRequestDto, page);
-        child.setParent(parent);
-        parent.getChildren().add(child);
-
-        tempIdToEntity.put(child.getExternalId(), child);
-    }
-
 }
