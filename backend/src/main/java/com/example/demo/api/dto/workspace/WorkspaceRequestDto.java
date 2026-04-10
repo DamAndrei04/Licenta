@@ -9,16 +9,17 @@ import lombok.experimental.SuperBuilder;
 import java.util.List;
 import java.util.Map;
 
-@Data
-@Builder
-public class WorkspaceRequestDto {
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import java.util.Map;
 
+@Data
+public class WorkspaceRequestDto {
     @NotNull
     private Long projectId;
-
+    private String version;
+    private String exportedAt;
+    private String activePageId;
     @NotNull
-    private List<PageRequestDto> pages;
-
-    @NotNull
-    private Map<String, List<ComponentRequestDto>> componentsByPageTempId;
+    private Map<String, PageImportDto> pages;
 }
