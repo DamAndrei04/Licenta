@@ -5,6 +5,7 @@ import useBuilderStore from '@/store/useBuilderStore';
 import { exportToJSON } from "@/utils/ExportToJson";
 import { Undo2, Redo2, Trash2, Download, Upload } from 'lucide-react';
 import { useRef } from 'react';
+import AgentChat from "@/features/workspace/components/agentChat/AgentChat";
 
 const Toolbar = ({ handleClear }) => {
 
@@ -50,6 +51,9 @@ const Toolbar = ({ handleClear }) => {
                 ))}
             </div>
 
+            <AgentChat />
+
+            <div className="toolbar-actions">
             <input
                 ref={fileInputRef}
                 type="file"
@@ -79,6 +83,7 @@ const Toolbar = ({ handleClear }) => {
                 <Redo2 size={18} />
                 Redo
             </button>
+        </div>
         </div>
     );
 };

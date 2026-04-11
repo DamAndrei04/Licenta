@@ -1,0 +1,317 @@
+/* ══════════════════════════════════════════
+   AgentChat — scoped to .ac-root (toggle)
+   and #ac-portal / .ac-panel (floating panel
+   rendered via ReactDOM.createPortal into body)
+══════════════════════════════════════════ */
+
+.ac-root {
+    position: relative;
+    display: flex;
+    align-items: center;
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 0.875rem;
+    color: #1a1a1a;
+}
+
+.ac-root *, .ac-root *::before, .ac-root *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ══════════════════════════════
+   TOGGLE BUTTON
+══════════════════════════════ */
+.ac-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 32px;
+    padding: 0 0.75rem;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    color: #444;
+}
+
+.ac-toggle:hover {
+    background: #efefef;
+    border-color: #ccc;
+}
+
+.ac-root--open .ac-toggle {
+    background: #fff;
+    border-color: #22c67a;
+    box-shadow: 0 0 0 2px rgba(34, 198, 122, 0.15);
+    color: #1a1a1a;
+}
+
+.ac-toggle-left {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.ac-icon {
+    font-size: 1rem;
+    color: #22c67a;
+    line-height: 1;
+}
+
+.ac-toggle-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.ac-thinking-badge {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.ac-thinking-badge span {
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #22c67a;
+    animation: ac-dot-bounce 1.2s infinite;
+}
+.ac-thinking-badge span:nth-child(2) { animation-delay: 0.2s; }
+.ac-thinking-badge span:nth-child(3) { animation-delay: 0.4s; }
+
+.ac-toggle-right {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: 0.25rem;
+}
+
+.ac-msg-count {
+    font-size: 0.68rem;
+    color: #aaa;
+    font-weight: 400;
+}
+
+.ac-chevron {
+    width: 13px;
+    height: 13px;
+    color: #aaa;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.ac-chevron--up {
+    transform: rotate(180deg);
+}
+
+/* ══════════════════════════════
+   FLOATING PANEL
+   position: fixed is set via inline
+   style in JS (from getBoundingClientRect).
+   This means it's anchored to the viewport,
+   fully outside the toolbar DOM — no clipping.
+══════════════════════════════ */
+.ac-panel {
+    width: 360px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.12),
+            0 2px 8px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 9999;
+
+    /* Collapsed */
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition:
+            max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 0.2s ease,
+            transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ac-panel *, .ac-panel *::before, .ac-panel *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.ac-panel--open {
+    max-height: 360px;
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+}
+
+/* ══════════════════════════════
+   MESSAGES
+══════════════════════════════ */
+.ac-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    scrollbar-width: thin;
+    scrollbar-color: #ddd transparent;
+}
+
+.ac-messages::-webkit-scrollbar { width: 4px; }
+.ac-messages::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 4px;
+}
+
+.ac-msg {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.45rem;
+    animation: ac-msg-in 0.2s ease both;
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+@keyframes ac-msg-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.ac-msg--user { flex-direction: row-reverse; }
+
+.ac-msg-avatar {
+    font-size: 0.95rem;
+    color: #22c67a;
+    flex-shrink: 0;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.ac-msg-bubble {
+    max-width: 75%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    word-break: break-word;
+    user-select: text;
+}
+
+.ac-msg--agent .ac-msg-bubble {
+    background: #f2f2f2;
+    color: #1a1a1a;
+    border-bottom-left-radius: 4px;
+}
+
+.ac-msg--user .ac-msg-bubble {
+    background: #22c67a;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    font-weight: 500;
+}
+
+.ac-msg-bubble--thinking {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.55rem 0.75rem;
+}
+
+.ac-msg-bubble--thinking span {
+    display: block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #999;
+    animation: ac-dot-bounce 1.2s infinite;
+}
+.ac-msg-bubble--thinking span:nth-child(2) { animation-delay: 0.2s; }
+.ac-msg-bubble--thinking span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes ac-dot-bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40%           { transform: scale(1);   opacity: 1; }
+}
+
+/* ══════════════════════════════
+   INPUT ROW
+══════════════════════════════ */
+.ac-input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    border-top: 1px solid #ebebeb;
+    background: #fafafa;
+}
+
+.ac-input {
+    flex: 1;
+    resize: none;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 0.82rem;
+    color: #1a1a1a;
+    background: #fff;
+    outline: none;
+    line-height: 1.5;
+    max-height: 90px;
+    overflow-y: auto;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ac-input::placeholder { color: #bbb; }
+
+.ac-input:focus {
+    border-color: #22c67a;
+    box-shadow: 0 0 0 2px rgba(34, 198, 122, 0.12);
+}
+
+.ac-input:disabled {
+    background: #f5f5f5;
+    color: #aaa;
+}
+
+.ac-send {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #22c67a;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+
+.ac-send svg { width: 14px; height: 14px; }
+
+.ac-send:hover:not(:disabled) {
+    background: #1aad68;
+    box-shadow: 0 2px 8px rgba(34, 198, 122, 0.3);
+    transform: translateY(-1px);
+}
+
+.ac-send:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.ac-send:disabled {
+    background: #d4d4d4;
+    cursor: not-allowed;
+}
