@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { login } from "../../api/AuthService";
 import "./LoginForm.css";
 
 export default function LoginForm() {
     const [form, setForm] = useState({ username: "", password: "" });
     const [errors, setErrors] = useState({});
-    const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [apiError, setApiError] = useState(null);
 
     const validate = () => {
         const e = {};
@@ -16,29 +18,33 @@ export default function LoginForm() {
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
         setErrors({ ...errors, [e.target.name]: undefined });
+        setApiError(null);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const errs = validate();
         if (Object.keys(errs).length) {
             setErrors(errs);
-        } else {
-            setSubmitted(true);
+            return;
+        }
+
+        setLoading(true);
+        setApiError(null);
+        try {
+            await login(form.username, form.password);
+            window.location.href = "/dashboard";
+        } catch (err) {
+            const status = err?.response?.status;
+            if (status === 401) {
+                setApiError("Invalid username or password.");
+            } else {
+                setApiError("Something went wrong. Please try again.");
+            }
+        } finally {
+            setLoading(false);
         }
     };
-
-    if (submitted) {
-        return (
-            <div className="lf-wrapper">
-                <div className="lf-card lf-success">
-                    <div className="lf-success-icon">✓</div>
-                    <h2>Welcome back.</h2>
-                    <p>Logged in as <strong>{form.username}</strong>.</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="lf-wrapper">
@@ -47,7 +53,6 @@ export default function LoginForm() {
                     <span className="lf-eyebrow">Welcome back</span>
                     <h1 className="lf-title">Sign in</h1>
                 </div>
-
                 <form className="lf-form" onSubmit={handleSubmit} noValidate>
                     <Field
                         label="Username"
@@ -67,16 +72,16 @@ export default function LoginForm() {
                         error={errors.password}
                         onChange={handleChange}
                     />
-
+                    {apiError && (
+                        <div className="lf-api-error">{apiError}</div>
+                    )}
                     <div className="lf-forgot">
                         <a href="#">Forgot password?</a>
                     </div>
-
-                    <button className="lf-btn" type="submit">
-                        Log in
+                    <button className="lf-btn" type="submit" disabled={loading}>
+                        {loading ? "Signing in..." : "Log in"}
                     </button>
                 </form>
-
                 <p className="lf-footer">
                     Don't have an account? <a href="/register">Register</a>
                 </p>

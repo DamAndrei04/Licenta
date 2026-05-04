@@ -251,6 +251,15 @@ const useBuilderStore = create(
                     set(() => normalized);
                 }
             },
+            loadState: (backendPages) => {
+                const normalized = importJSON({ pages: backendPages });
+                if (!normalized) {
+                    console.error('Failed to normalize backend workspace data');
+                    return;
+                }
+                set(() => normalized);
+            },
+
         }),
         {
             limit: 50,

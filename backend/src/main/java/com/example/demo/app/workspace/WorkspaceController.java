@@ -23,4 +23,11 @@ public class WorkspaceController implements WorkspaceApi {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(workspaceService.saveProjectState(workspaceRequestDto));
     }
+
+    @Override
+    public ResponseEntity<WorkspaceRequestDto> getProjectWorkspace(Long projectId) {
+        log.info("Received request for getProjectWorkspace with projectId: {}", projectId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(workspaceService.getProjectWorkspace(projectId));
+    }
 }

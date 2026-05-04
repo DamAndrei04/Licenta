@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import './AgentChat.css';
+import { sendPromptToAgent } from '@/api/AgentService';
+import useBuilderStore from '@/store/useBuilderStore';
 
-const MOCK_MESSAGES = [
+const INITIAL_MESSAGES = [
     {
         id: 1,
         role: 'agent',
@@ -12,7 +14,7 @@ const MOCK_MESSAGES = [
 
 export default function AgentChat() {
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState(MOCK_MESSAGES);
+    const [messages, setMessages] = useState(INITIAL_MESSAGES);
     const [input, setInput] = useState('');
     const [isThinking, setIsThinking] = useState(false);
     const [panelStyle, setPanelStyle] = useState({});
@@ -21,10 +23,10 @@ export default function AgentChat() {
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
-    // Position the portal panel relative to the toggle button
+    const loadState = useBuilderStore((state) => state.loadState);
+
     useEffect(() => {
         if (!isOpen || !toggleRef.current) return;
-
         const rect = toggleRef.current.getBoundingClientRect();
         setPanelStyle({
             position: 'fixed',
@@ -33,7 +35,6 @@ export default function AgentChat() {
         });
     }, [isOpen]);
 
-    // Auto-scroll & focus when open
     useEffect(() => {
         if (isOpen) {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -41,7 +42,6 @@ export default function AgentChat() {
         }
     }, [isOpen, messages]);
 
-    // Close on outside click
     useEffect(() => {
         if (!isOpen) return;
         const onPointerDown = (e) => {
@@ -57,7 +57,7 @@ export default function AgentChat() {
 
     const handleToggle = () => setIsOpen((prev) => !prev);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         const text = input.trim();
         if (!text || isThinking) return;
 
@@ -65,14 +65,36 @@ export default function AgentChat() {
         setInput('');
         setIsThinking(true);
 
-        // TODO: replace with real MAS endpoint
-        setTimeout(() => {
+        try {
+            const res = await sendPromptToAgent({ prompt: text });
+            const descriptor = res.data; // UIDescriptor — { pages: { ... } }
+
+            if (descriptor?.pages) {
+                loadState(descriptor.pages);
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        id: Date.now() + 1,
+                        role: 'agent',
+                        text: `Done! Generated ${Object.keys(descriptor.pages).length} page(s). You can now edit or save.`,
+                    },
+                ]);
+            } else {
+                throw new Error('Agent returned empty or invalid response');
+            }
+        } catch (err) {
+            console.error('Agent call failed:', err);
             setMessages((prev) => [
                 ...prev,
-                { id: Date.now() + 1, role: 'agent', text: 'Got it! Working on your request…' },
+                {
+                    id: Date.now() + 1,
+                    role: 'agent',
+                    text: 'Something went wrong. Please try again.',
+                },
             ]);
+        } finally {
             setIsThinking(false);
-        }, 1500);
+        }
     };
 
     const handleKeyDown = (e) => {
@@ -88,7 +110,6 @@ export default function AgentChat() {
             className={`ac-panel ${isOpen ? 'ac-panel--open' : ''}`}
             style={panelStyle}
         >
-            {/* Messages */}
             <div className="ac-messages">
                 {messages.map((msg) => (
                     <div key={msg.id} className={`ac-msg ac-msg--${msg.role}`}>
@@ -109,7 +130,6 @@ export default function AgentChat() {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input row */}
             <div className="ac-input-row">
                 <textarea
                     ref={inputRef}
@@ -137,7 +157,6 @@ export default function AgentChat() {
 
     return (
         <div className={`ac-root ${isOpen ? 'ac-root--open' : ''}`}>
-            {/* Toggle button — stays in the toolbar flow */}
             <button ref={toggleRef} className="ac-toggle" onClick={handleToggle}>
                 <span className="ac-toggle-left">
                     <span className="ac-icon">⬡</span>
@@ -159,8 +178,6 @@ export default function AgentChat() {
                     </svg>
                 </span>
             </button>
-
-            {/* Panel rendered into document.body — escapes toolbar overflow/stacking */}
             {createPortal(panel, document.body)}
         </div>
     );

@@ -14,6 +14,7 @@ import lombok.Data;
 import java.util.Map;
 
 @Data
+@Builder
 public class WorkspaceRequestDto {
     @NotNull
     private Long projectId;
