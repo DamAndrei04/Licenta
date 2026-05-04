@@ -1,34 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Dashboard.css";
-
-const MOCK_USER = { id: 1, username: "andrei" };
-
-const MOCK_PROJECTS = [
-    {
-        id: 1,
-        user_id: 1,
-        name: "E-Commerce UI",
-        description: "A full storefront with cart, checkout, and product pages.",
-        created_at: "2026-03-10T09:14:00Z",
-        updated_at: "2026-04-08T16:42:00Z",
-    },
-    {
-        id: 2,
-        user_id: 1,
-        name: "Admin Dashboard",
-        description: "Internal analytics and user management panel.",
-        created_at: "2026-03-22T11:00:00Z",
-        updated_at: "2026-04-01T10:05:00Z",
-    },
-    {
-        id: 3,
-        user_id: 1,
-        name: "Landing Page",
-        description: "",
-        created_at: "2026-04-05T08:30:00Z",
-        updated_at: "2026-04-05T08:30:00Z",
-    },
-];
+import { getCurrentUserProjects, createProject, deleteProject } from "@/api/ProjectService";
+import { getCurrentUser } from "@/api/UserService";
 
 function timeAgo(iso) {
     const diff = Date.now() - new Date(iso).getTime();
@@ -51,11 +24,31 @@ function formatDate(iso) {
 }
 
 export default function Dashboard() {
-    const [projects, setProjects] = useState(MOCK_PROJECTS);
+    const [user, setUser] = useState(null);
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [form, setForm] = useState({ name: "", description: "" });
     const [errors, setErrors] = useState({});
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [userRes, projectsRes] = await Promise.all([
+                    getCurrentUser(),
+                    getCurrentUserProjects(),
+                ]);
+                setUser(userRes.data);
+                setProjects(projectsRes.data);
+            } catch (err) {
+                console.error("Failed to load dashboard data", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
 
     const openModal = () => {
         setForm({ name: "", description: "" });
@@ -70,31 +63,44 @@ export default function Dashboard() {
         setErrors({ ...errors, [e.target.name]: undefined });
     };
 
-    const handleCreate = (e) => {
+    const handleCreate = async (e) => {
         e.preventDefault();
         const errs = {};
         if (!form.name.trim()) errs.name = "Project name is required.";
         if (Object.keys(errs).length) { setErrors(errs); return; }
 
-        const now = new Date().toISOString();
-        const newProject = {
-            id: Date.now(),
-            user_id: MOCK_USER.id,
-            name: form.name.trim(),
-            description: form.description.trim(),
-            created_at: now,
-            updated_at: now,
-        };
-        setProjects([newProject, ...projects]);
-        closeModal();
+        try {
+            const res = await createProject({
+                name: form.name.trim(),
+                description: form.description.trim(),
+            });
+            setProjects([res.data, ...projects]);
+            closeModal();
+        } catch (err) {
+            setErrors({ general: "Failed to create project." });
+        }
     };
 
     const confirmDelete = (id) => setDeleteTarget(id);
     const cancelDelete = () => setDeleteTarget(null);
-    const handleDelete = () => {
-        setProjects(projects.filter((p) => p.id !== deleteTarget));
-        setDeleteTarget(null);
+
+    const handleDelete = async () => {
+        try {
+            await deleteProject(deleteTarget);
+            setProjects(projects.filter((p) => p.id !== deleteTarget));
+            setDeleteTarget(null);
+        } catch (err) {
+            console.error("Failed to delete project", err);
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="db-root db-loading">
+                <div className="db-spinner" />
+            </div>
+        );
+    }
 
     return (
         <div className="db-root">
@@ -105,10 +111,10 @@ export default function Dashboard() {
                     <span className="db-logo-text">ForgeUI</span>
                 </a>
                 <div className="db-nav-right">
-          <span className="db-user-badge">
-            <span className="db-user-dot" />
-              {MOCK_USER.username}
-          </span>
+                    <span className="db-user-badge">
+                        <span className="db-user-dot" />
+                        {user?.username}
+                    </span>
                     <a href="/login" className="db-logout">Sign out</a>
                 </div>
             </nav>
@@ -136,13 +142,13 @@ export default function Dashboard() {
                         <span className="db-stat-label">Total projects</span>
                     </div>
                     <div className="db-stat">
-            <span className="db-stat-value">
-              {projects.filter(p => {
-                  const d = new Date(p.updated_at);
-                  const now = new Date();
-                  return (now - d) < 7 * 24 * 60 * 60 * 1000;
-              }).length}
-            </span>
+                        <span className="db-stat-value">
+                            {projects.filter(p => {
+                                const d = new Date(p.updatedAt);
+                                const now = new Date();
+                                return (now - d) < 7 * 24 * 60 * 60 * 1000;
+                            }).length}
+                        </span>
                         <span className="db-stat-label">Updated this week</span>
                     </div>
                 </div>
@@ -211,16 +217,7 @@ export default function Dashboard() {
                                 />
                             </div>
 
-                            <div className="db-modal-meta">
-                <span className="db-meta-row">
-                  <span className="db-meta-key">user_id</span>
-                  <span className="db-meta-val">{MOCK_USER.id}</span>
-                </span>
-                                <span className="db-meta-row">
-                  <span className="db-meta-key">created_at</span>
-                  <span className="db-meta-val">now()</span>
-                </span>
-                            </div>
+                            {errors.general && <span className="db-error">{errors.general}</span>}
 
                             <div className="db-modal-actions">
                                 <button type="button" className="db-cancel-btn" onClick={closeModal}>Cancel</button>
@@ -250,7 +247,7 @@ export default function Dashboard() {
 }
 
 function ProjectCard({ project, index, onDelete }) {
-    const isUpdated = project.updated_at !== project.created_at;
+    const isUpdated = project.updatedAt !== project.createdAt;
 
     return (
         <div className="db-card" style={{ animationDelay: `${index * 0.07}s` }}>
@@ -276,9 +273,9 @@ function ProjectCard({ project, index, onDelete }) {
                         <path d="M4 1v2M10 1v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
                     </svg>
                     <span className="db-date-label">Created</span>
-                    <span className="db-date-val" title={formatDate(project.created_at)}>
-            {timeAgo(project.created_at)}
-          </span>
+                    <span className="db-date-val" title={formatDate(project.createdAt)}>
+                        {timeAgo(project.createdAt)}
+                    </span>
                 </div>
                 {isUpdated && (
                     <div className="db-card-date-row">
@@ -286,14 +283,14 @@ function ProjectCard({ project, index, onDelete }) {
                             <path d="M1 7a6 6 0 1 0 6-6 6 6 0 0 0-4.5 2M1 3v2h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                         <span className="db-date-label">Updated</span>
-                        <span className="db-date-val" title={formatDate(project.updated_at)}>
-              {timeAgo(project.updated_at)}
-            </span>
+                        <span className="db-date-val" title={formatDate(project.updatedAt)}>
+                            {timeAgo(project.updatedAt)}
+                        </span>
                     </div>
                 )}
             </div>
 
-            <a href={`/editor/${project.id}`} className="db-card-open">
+            <a href={`/workspace/${project.id}`} className="db-card-open">
                 Open in editor
                 <svg viewBox="0 0 16 16" fill="none" className="db-card-arrow">
                     <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

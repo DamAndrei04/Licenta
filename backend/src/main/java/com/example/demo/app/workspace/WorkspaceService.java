@@ -23,10 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,8 +45,10 @@ public class WorkspaceService {
                         new ProjectNotFoundException(
                                 String.format("Project with id: %d not found", projectId)));
 
-        componentService.deleteComponentByProjectId(projectId);
         pageService.deletePagesByProjectId(projectId);
+        pageRepository.flush();
+        //componentService.deleteComponentByProjectId(projectId);
+        //pageService.deletePagesByProjectId(projectId);
 
         for (PageImportDto pageDto : dto.getPages().values()) {
 
@@ -108,6 +107,56 @@ public class WorkspaceService {
         return WorkspaceResponseDto.builder()
                 .succes(true)
                 .message("Workspace saved successfully")
+                .build();
+    }
+
+    @Transactional
+    public WorkspaceRequestDto getProjectWorkspace(Long projectId) {
+        projectRepository.findById(projectId)
+                .orElseThrow(() ->
+                        new ProjectNotFoundException(
+                                String.format("Project with id: %d not found", projectId)));
+
+        List<PageEntity> pages = pageRepository.findByProjectId(projectId);
+
+        Map<String, PageImportDto> pageMap = new HashMap<>();
+        for (PageEntity page : pages) {
+            Map<String, DroppedItemDto> droppedItems = new HashMap<>();
+
+            // First pass — create all items
+            for (ComponentEntity comp : page.getComponents()) {
+                DroppedItemDto item = new DroppedItemDto();
+                item.setId(comp.getExternalId());
+                item.setType(comp.getType().name().toLowerCase()); // importJSON expects lowercase
+                item.setParentId(comp.getParent() != null ? comp.getParent().getExternalId() : null);
+                item.setProps(comp.getProps());
+                item.setLayout(comp.getLayout());
+                item.setEvents(comp.getEvents());
+                item.setState(comp.getState());
+                item.setChildrenIds(new ArrayList<>()); // initialize empty
+                droppedItems.put(comp.getExternalId(), item);
+            }
+
+            // Second pass — rebuild childrenIds from parentId relationships
+            for (DroppedItemDto item : droppedItems.values()) {
+                if (item.getParentId() != null) {
+                    DroppedItemDto parent = droppedItems.get(item.getParentId());
+                    if (parent != null) {
+                        parent.getChildrenIds().add(item.getId());
+                    }
+                }
+            }
+
+            PageImportDto pageDto = new PageImportDto();
+            pageDto.setName(page.getName());
+            pageDto.setRoute(page.getRoute());
+            pageDto.setDroppedItems(droppedItems);
+            pageMap.put(page.getName(), pageDto);
+        }
+
+        return WorkspaceRequestDto.builder()
+                .projectId(projectId)
+                .pages(pageMap)
                 .build();
     }
 

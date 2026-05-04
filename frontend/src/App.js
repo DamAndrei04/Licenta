@@ -15,7 +15,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/login" element={<LoginForm />} />
-          <Route path="/workspace" element={<WorkspacePage/>} />
+          <Route path="/workspace/:projectId" element={<WorkspacePage />} />
       </Routes>
     </Router>
   );

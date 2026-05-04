@@ -5,6 +5,7 @@ import com.example.demo.api.dto.page.PageResponseDto;
 import com.example.demo.api.exception.OwnershipException;
 import com.example.demo.api.exception.PageNotFoundException;
 import com.example.demo.api.exception.ProjectNotFoundException;
+import com.example.demo.app.components.ComponentEntity;
 import com.example.demo.app.pages.util.PageConverter;
 import com.example.demo.app.projects.ProjectEntity;
 import com.example.demo.app.projects.ProjectRepository;
@@ -91,15 +92,21 @@ public class PageService {
         pageRepository.deleteById(page.getId());
     }
 
-    public void deletePagesByProjectId(Long projectId){
-        ProjectEntity project = projectRepository
-                .findById(projectId)
-                .orElseThrow(
-                        () -> new ProjectNotFoundException(String.format("Project with id: %d not found", projectId)));
+    @Transactional
+    public void deletePagesByProjectId(Long projectId) {
+        List<PageEntity> pages = pageRepository.findByProjectId(projectId);
 
-        project.getPages().clear();
+        for (PageEntity page : pages) {
+            // Null out parent references so JPA can delete without FK violations
+            for (ComponentEntity component : page.getComponents()) {
+                component.setParent(null);
+            }
+            pageRepository.save(page);
+        }
 
-        projectRepository.save(project);
+        pageRepository.flush(); // flush nulled parents before delete
+        pageRepository.deleteAll(pages);
+        pageRepository.flush();
     }
 
     public void validatePageOwnership(PageEntity page){

@@ -8,5 +8,6 @@ import java.util.List;
 public interface PageRepository extends JpaRepository<PageEntity, Long> {
     List<PageEntity> getPageEntitiesByProjectId(Long id);
     void deletePageByProjectId(Long projectId);
+    List<PageEntity> findByProjectId(Long projectId);
 
 }

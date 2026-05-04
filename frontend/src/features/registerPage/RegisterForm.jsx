@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./RegisterForm.css";
+import { register } from "@/api/AuthService";
 
 export default function RegisterForm() {
     const [form, setForm] = useState({
@@ -14,7 +15,7 @@ export default function RegisterForm() {
     useEffect(() => {
         if (!submitted) return;
         if (countdown <= 0) {
-            window.location.href = "/workspace";
+            window.location.href = "/dashboard";
             return;
         }
         const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
@@ -36,13 +37,19 @@ export default function RegisterForm() {
         setErrors({ ...errors, [e.target.name]: undefined });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const errs = validate();
         if (Object.keys(errs).length) {
             setErrors(errs);
-        } else {
-            setSubmitted(true);
+            return; // ← stop here if validation fails
+        }
+
+        try {
+            await register({ username: form.username, password: form.password });
+            setSubmitted(true); // ← only after successful API call
+        } catch (err) {
+            setErrors({ general: err.response?.data?.message || "Registration failed." });
         }
     };
 
