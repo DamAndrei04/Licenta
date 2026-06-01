@@ -69,44 +69,89 @@ public class SchemaTransformer {
             flattenNode(rootNode, droppedItems, rootIds, null);
         }
 
+        // Fix 1: correct any root sections that overlap each other due to
+        // LLM arithmetic errors in cumulative y calculation.
+        fixRootSectionOverlaps(droppedItems, rootIds);
+
         page.setDroppedItems(droppedItems);
         page.setRootIds(rootIds);
 
         return page;
     }
-    
-    private void flattenNode(UIComponentNode node, 
-                            Map<String, ComponentDescriptor> droppedItems,
-                            List<String> rootIds,
-                            String parentId) {
-        
-        // Map component type to allowed schema types
+
+    /**
+     * Fix 1 — Root section overlap correction.
+     *
+     * Root sections are placed in the LLM's intended array order (top → bottom).
+     * For each section, we compute the minimum y it can occupy given all sections
+     * already placed. Two sections conflict only when their x-ranges overlap
+     * (side-by-side sections at the same y are intentional and left untouched).
+     */
+    private void fixRootSectionOverlaps(Map<String, ComponentDescriptor> droppedItems,
+                                        List<String> rootIds) {
+        if (rootIds.size() <= 1) return;
+
+        // [x, y, width, height] of every section placed so far
+        List<double[]> placed = new ArrayList<>();
+
+        for (String id : rootIds) {
+            Map<String, Object> layout = droppedItems.get(id).getLayout();
+
+            double x = layoutDouble(layout, "x");
+            double y = layoutDouble(layout, "y");
+            double w = layoutDouble(layout, "width");
+            double h = layoutDouble(layout, "height");
+
+            // Minimum y this section must start at to avoid overlapping any
+            // already-placed section whose x-range intersects ours.
+            double requiredY = 0.0;
+            for (double[] p : placed) {
+                boolean xOverlap = x < p[0] + p[2] && x + w > p[0];
+                if (xOverlap) {
+                    requiredY = Math.max(requiredY, p[1] + p[3]);
+                }
+            }
+
+            double finalY = Math.max(y, requiredY);
+            if (finalY != y) {
+                log.debug("Layout fix: root section '{}' y {} → {} (overlap correction)", id, y, finalY);
+                layout.put("y", finalY);
+                y = finalY;
+            }
+
+            placed.add(new double[]{x, y, w, h});
+        }
+    }
+
+    private void flattenNode(UIComponentNode node,
+                             Map<String, ComponentDescriptor> droppedItems,
+                             List<String> rootIds,
+                             String parentId) {
+
         String mappedType = mapToAllowedType(node.getComponentType());
-        
+
         ComponentDescriptor component = new ComponentDescriptor();
         component.setId(node.getNodeId());
         component.setType(mappedType);
         component.setParentId(parentId);
-        
-        // Extract and validate layout - using Map now
+
+        // Extract and validate layout
         Map<String, Object> layout = new HashMap<>();
         if (node.getLayout() != null) {
             layout = schemaHandler.filterValidLayoutProps(node.getLayout());
         }
-        // Ensure required layout fields exist
         layout.putIfAbsent("x", 0.0);
         layout.putIfAbsent("y", 0.0);
         layout.putIfAbsent("width", 200.0);
         layout.putIfAbsent("height", 40.0);
         component.setLayout(layout);
-        
-        // Extract and validate props - schema-driven filtering
+
         Map<String, Object> props = new HashMap<>();
         if (node.getProperties() != null) {
             props = schemaHandler.filterValidProps(node.getProperties());
         }
         component.setProps(props);
-        
+
         // Handle children
         List<String> childrenIds = new ArrayList<>();
         if (node.getChildren() != null && !node.getChildren().isEmpty()) {
@@ -114,16 +159,41 @@ public class SchemaTransformer {
                 childrenIds.add(child.getNodeId());
                 flattenNode(child, droppedItems, rootIds, node.getNodeId());
             }
+
+            // Fix 2: if any child extends beyond the declared parent height,
+            // expand the parent so the child doesn't bleed into the section below.
+            double maxChildBottom = 0.0;
+            for (UIComponentNode child : node.getChildren()) {
+                if (child.getLayout() != null) {
+                    double childBottom = layoutDouble(child.getLayout(), "y")
+                            + layoutDouble(child.getLayout(), "height");
+                    maxChildBottom = Math.max(maxChildBottom, childBottom);
+                }
+            }
+            double declaredHeight = layoutDouble(layout, "height");
+            if (maxChildBottom > declaredHeight) {
+                double corrected = maxChildBottom + 20; // 20 px breathing room
+                log.debug("Layout fix: parent '{}' height {} → {} (child overflow correction)",
+                        node.getNodeId(), declaredHeight, corrected);
+                layout.put("height", corrected);
+            }
         }
+
         component.setChildrenIds(childrenIds);
-        
-        // Add to droppedItems
+
         droppedItems.put(node.getNodeId(), component);
-        
-        // If root level, add to rootIds
+
         if (parentId == null) {
             rootIds.add(node.getNodeId());
         }
+    }
+
+    /** Safely read a numeric value from a layout map as a double. */
+    private double layoutDouble(Map<String, Object> layout, String key) {
+        if (layout == null) return 0.0;
+        Object val = layout.get(key);
+        if (val instanceof Number) return ((Number) val).doubleValue();
+        return 0.0;
     }
     
     /**

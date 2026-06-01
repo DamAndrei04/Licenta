@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "./Dashboard.css";
 import { getCurrentUserProjects, createProject, deleteProject } from "@/api/ProjectService";
 import { getCurrentUser } from "@/api/UserService";
+import TutorialModal from "@/components/TutorialModal";
 
 function timeAgo(iso) {
     const diff = Date.now() - new Date(iso).getTime();
@@ -31,6 +32,7 @@ export default function Dashboard() {
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [form, setForm] = useState({ name: "", description: "" });
     const [errors, setErrors] = useState({});
+    const [tutorialOpen, setTutorialOpen] = useState(() => !localStorage.getItem('forgeui_tutorial_seen'));
 
     useEffect(() => {
         const fetchData = async () => {
@@ -111,6 +113,14 @@ export default function Dashboard() {
                     <span className="db-logo-text">ForgeUI</span>
                 </a>
                 <div className="db-nav-right">
+                    <button className="db-help-btn" onClick={() => setTutorialOpen(true)} title="Open tutorial">
+                        <svg viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3"/>
+                            <path d="M6.3 6.1C6.5 5.3 7.2 4.8 8 4.8c1 0 1.7.7 1.7 1.6 0 .8-.5 1.2-1.1 1.6C8 8.4 7.8 8.8 7.8 9.3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                            <circle cx="7.8" cy="11" r="0.7" fill="currentColor"/>
+                        </svg>
+                        <span>Help</span>
+                    </button>
                     <span className="db-user-badge">
                         <span className="db-user-dot" />
                         {user?.username}
@@ -118,6 +128,13 @@ export default function Dashboard() {
                     <a href="/login" className="db-logout">Sign out</a>
                 </div>
             </nav>
+
+            {tutorialOpen && (
+                <TutorialModal onClose={() => {
+                    localStorage.setItem('forgeui_tutorial_seen', '1');
+                    setTutorialOpen(false);
+                }} />
+            )}
 
             {/* ── Main ── */}
             <main className="db-main">

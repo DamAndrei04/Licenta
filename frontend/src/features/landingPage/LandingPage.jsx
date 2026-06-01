@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import "./LandingPage.css";
+import TutorialModal from "@/components/TutorialModal";
 
 export default function LandingPage() {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [tutorialOpen, setTutorialOpen] = useState(false);
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 40);
@@ -32,10 +34,20 @@ export default function LandingPage() {
                 </button>
 
                 <div className={`lp-nav-links ${menuOpen ? "lp-nav-links--open" : ""}`}>
+                    <button className="lp-nav-link lp-nav-link--help" onClick={() => setTutorialOpen(true)}>
+                        <svg viewBox="0 0 16 16" fill="none" className="lp-help-icon">
+                            <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3"/>
+                            <path d="M6.3 6.1C6.5 5.3 7.2 4.8 8 4.8c1 0 1.7.7 1.7 1.6 0 .8-.5 1.2-1.1 1.6C8 8.4 7.8 8.8 7.8 9.3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                            <circle cx="7.8" cy="11" r="0.7" fill="currentColor"/>
+                        </svg>
+                        How it works
+                    </button>
                     <a href="/login" className="lp-nav-link">Sign in</a>
                     <a href="/register" className="lp-nav-btn">Register</a>
                 </div>
             </nav>
+
+            {tutorialOpen && <TutorialModal onClose={() => setTutorialOpen(false)} />}
 
             {/* ── Hero ── */}
             <section className="lp-hero">

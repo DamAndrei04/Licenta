@@ -11,22 +11,36 @@ import com.uibuilder.mas.agent.util.SchemaTransformer;
 import com.uibuilder.mas.api.dto.PromptRequestDto;
 import com.uibuilder.mas.api.dto.PromptResponseDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AgentService {
 
     private final AgentOrchestrator agentOrchestrator;
     private final SchemaTransformer schemaTransformer;
+    private final AgentStatusPublisher statusPublisher;
 
-    public UIDescriptor generateJSON(PromptRequestDto promptRequestDto){
-        AgentExecutionContext context = agentOrchestrator.execute(promptRequestDto.getPrompt());
-        return schemaTransformer.transform(context.getComponentTree());
+    public UIDescriptor generateJSON(PromptRequestDto promptRequestDto) {
+        String sessionId = promptRequestDto.getSessionId();
+        if (sessionId != null && !sessionId.isBlank()) {
+            statusPublisher.setSession(sessionId);
+        }
+        try {
+            AgentExecutionContext context = agentOrchestrator.execute(promptRequestDto.getPrompt());
+            return schemaTransformer.transform(context.getComponentTree());
+        } finally {
+            if (sessionId != null && !sessionId.isBlank()) {
+                statusPublisher.complete();
+                statusPublisher.clearSession();
+            }
+        }
         /*
         UIDescriptor finalDescriptor = schemaTransformer.transform(context.getComponentTree());
 

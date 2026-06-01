@@ -10,6 +10,9 @@ import com.uibuilder.mas.agent.agent.planner.model.UIPlan;
 import com.uibuilder.mas.agent.client.AnthropicClient;
 import com.uibuilder.mas.agent.prompt.PromptLoader;
 import com.uibuilder.mas.agent.prompt.PromptRenderer;
+import com.uibuilder.mas.api.dto.AgentPhase;
+import com.uibuilder.mas.api.dto.AgentStatusEvent;
+import com.uibuilder.mas.app.AgentStatusPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -24,21 +27,31 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class ComponentGenerator {
-    
+
     private final AnthropicClient anthropicClient;
     private final ObjectMapper objectMapper;
     private final PromptLoader promptLoader;
     private final PromptRenderer promptRenderer;
+    private final AgentStatusPublisher statusPublisher;
 
     public UIComponentTree generate(UIPlan plan) {
         log.debug("Generating pages from plan: {}", plan.getPlanId());
 
         List<UIBuiltPage> builtPages = new ArrayList<>();
         List<UIPage> pages = plan.getPages();
+        int totalPages = pages.size();
 
-        for (int i = 0; i < pages.size(); i++) {
+        for (int i = 0; i < totalPages; i++) {
             UIPage page = pages.get(i);
-            log.info("Generating page {}/{} '{}' ({})", i + 1, pages.size(), page.getName(), page.getRoute());
+            log.info("Generating page {}/{} '{}' ({})", i + 1, totalPages, page.getName(), page.getRoute());
+
+            statusPublisher.emit(AgentStatusEvent.builder()
+                    .phase(AgentPhase.BUILDER)
+                    .status("PAGE_STARTED")
+                    .currentPageIndex(i + 1)
+                    .currentPageName(page.getName())
+                    .totalPages(totalPages)
+                    .build());
 
             String prompt = buildPromptForPage(page);
             String llmResponse = anthropicClient.sendMessage(prompt);
@@ -52,8 +65,16 @@ public class ComponentGenerator {
                     .components(pageNodes)
                     .build());
 
+            statusPublisher.emit(AgentStatusEvent.builder()
+                    .phase(AgentPhase.BUILDER)
+                    .status("PAGE_COMPLETED")
+                    .currentPageIndex(i + 1)
+                    .currentPageName(page.getName())
+                    .totalPages(totalPages)
+                    .build());
+
             // Wait between pages to avoid hitting OTPM rate limit
-            if (i < pages.size() - 1) {
+            if (i < totalPages - 1) {
                 try {
                     log.info("Waiting 30s before next page to respect OTPM rate limit...");
                     Thread.sleep(30_000);
