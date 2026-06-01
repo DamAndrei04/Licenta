@@ -19,6 +19,30 @@ const styleObjectToCSS = (styleObj = {}) =>
         })
         .join('; ');
 
+// ─── Properties owned exclusively by the layout layer ─────────────────────────
+// These come from the canvas layout (x, y, width, height) and must never be
+// overridden by whatever the LLM put in props.style.
+const LAYOUT_OWNED_PROPS = new Set([
+    'position', 'left', 'top', 'right', 'bottom',
+    'width', 'height', 'min-width', 'max-width', 'min-height', 'max-height',
+    'box-sizing',
+]);
+
+// Strip layout-owned declarations from a CSS string so they cannot override the
+// percentage-based layout values computed from canvas coordinates.
+const stripLayoutProps = (cssStr) => {
+    if (!cssStr) return '';
+    return cssStr
+        .split(';')
+        .map((d) => d.trim())
+        .filter((d) => {
+            if (!d) return false;
+            const prop = d.split(':')[0].trim().toLowerCase();
+            return !LAYOUT_OWNED_PROPS.has(prop);
+        })
+        .join('; ');
+};
+
 // ─── Merge props (mirrors DroppedItem.jsx) ────────────────────────────────────
 
 const getMergedProps = (item) => {
@@ -86,7 +110,8 @@ const renderChildItem = (item, allItems, parentWidth, parentHeight, depth = 0) =
         'box-sizing: border-box',
     ].join('; ');
 
-    const componentStyle = styleObjectToCSS(mergedProps.style || {});
+    // Strip layout-owned properties so they cannot override the layout values.
+    const componentStyle = stripLayoutProps(styleObjectToCSS(mergedProps.style || {}));
     const fullStyle = componentStyle
         ? `${layoutStyle}; ${componentStyle}`
         : layoutStyle;
@@ -142,7 +167,8 @@ const renderRootItem = (item, allItems, depth = 0) => {
     // Inner div: centered content, height from canvas
     const innerHeightVw = pxToVw(item.layout.height);
     const strippedStyle = stripBackgroundStyle(itemStyle);
-    const innerComponentStyle = styleObjectToCSS(strippedStyle);
+    // Also strip layout-owned props so they can't override the vw-based height.
+    const innerComponentStyle = stripLayoutProps(styleObjectToCSS(strippedStyle));
     const innerStyle = [
         'position: relative',
         'width: 100%',
@@ -233,13 +259,26 @@ const renderPageToHTML = (page, pageName) => {
     }
 
     button {
+      /* Remove OS-native chrome that overrides explicit width/height */
+      appearance: none;
+      -webkit-appearance: none;
+      border: none;
+      background: none;
       cursor: pointer;
       font-family: inherit;
+      /* Match Shadcn's default flex centering so text fills the button correctly */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: nowrap;
+      box-sizing: border-box;
     }
 
     input {
       font-family: inherit;
       outline: none;
+      box-sizing: border-box;
     }
   </style>
 </head>

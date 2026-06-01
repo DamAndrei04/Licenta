@@ -147,7 +147,7 @@
 }
 
 .ac-panel--open {
-    max-height: 360px;
+    max-height: 480px;
     opacity: 1;
     pointer-events: all;
     transform: translateY(0);
@@ -314,4 +314,181 @@
 .ac-send:disabled {
     background: #d4d4d4;
     cursor: not-allowed;
+}
+
+/* ══════════════════════════════
+   AGENT STATUS WIDGET
+══════════════════════════════ */
+.ac-status {
+    background: #f8f8f8;
+    border: 1px solid #e8e8e8;
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+    animation: ac-msg-in 0.2s ease both;
+    transition: border-color 0.3s, background 0.3s;
+}
+
+.ac-status--done {
+    background: #f0faf5;
+    border-color: rgba(34, 198, 122, 0.25);
+}
+
+.ac-status-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.55rem;
+}
+
+.ac-status-icon {
+    font-size: 0.85rem;
+    color: #22c67a;
+    line-height: 1;
+}
+
+.ac-status-label {
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: #555;
+    letter-spacing: 0.02em;
+    flex: 1;
+}
+
+.ac-status-dots {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.ac-status-dots span {
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #22c67a;
+    animation: ac-dot-bounce 1.2s infinite;
+}
+.ac-status-dots span:nth-child(2) { animation-delay: 0.2s; }
+.ac-status-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+.ac-retry-badge {
+    margin-left: auto;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 999px;
+    padding: 1px 7px;
+    line-height: 1.6;
+    animation: ac-msg-in 0.2s ease both;
+}
+
+/* ── Phase rows ── */
+.ac-phases {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.ac-phase {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.22rem 0;
+    transition: opacity 0.25s;
+    opacity: 0.35;
+}
+
+.ac-phase--active {
+    opacity: 1;
+}
+
+.ac-phase--done {
+    opacity: 0.7;
+}
+
+.ac-phase-indicator {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+}
+
+.ac-phase-indicator svg {
+    width: 12px;
+    height: 12px;
+    color: #22c67a;
+}
+
+.ac-phase-pulse {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c67a;
+    box-shadow: 0 0 0 0 rgba(34, 198, 122, 0.5);
+    animation: ac-phase-ring 1.4s infinite;
+}
+
+@keyframes ac-phase-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(34, 198, 122, 0.55); }
+    70%  { box-shadow: 0 0 0 6px rgba(34, 198, 122, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 198, 122, 0); }
+}
+
+.ac-phase-idle {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ccc;
+}
+
+.ac-phase-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.ac-phase-name {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.3;
+}
+
+.ac-phase--done .ac-phase-name {
+    color: #555;
+}
+
+.ac-phase-desc {
+    font-size: 0.69rem;
+    color: #888;
+    line-height: 1.4;
+    animation: ac-msg-in 0.2s ease both;
+}
+
+.ac-phase-desc em {
+    font-style: normal;
+    color: #22c67a;
+    font-weight: 600;
+}
+
+.ac-phase-page-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #22c67a;
+    background: rgba(34, 198, 122, 0.1);
+    border: 1px solid rgba(34, 198, 122, 0.25);
+    border-radius: 999px;
+    padding: 1px 6px;
+    line-height: 1.6;
 }

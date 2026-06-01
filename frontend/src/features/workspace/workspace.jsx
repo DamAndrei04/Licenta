@@ -179,7 +179,7 @@ export default function Main() {
                     </div>
 
                     {/* MAS Prompt bar */}
-                    <div className="prompt-bar">
+                    {/*<div className="prompt-bar">
                         <input
                             type="text"
                             className="prompt-input"
@@ -195,7 +195,7 @@ export default function Main() {
                         >
                             {generating ? 'Generating...' : 'Generate'}
                         </button>
-                    </div>
+                    </div>*/}
                 </div>
             </div>
         </DndProvider>

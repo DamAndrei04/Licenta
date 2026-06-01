@@ -275,6 +275,44 @@ Main Container (x: 0, y: 0, width: 1800, height: 2000+)
 └─ Sidebar (x: 1300, y: 100, width: 460, height: 600)
 ```
 
+## Grid Layouts — MANDATORY FORMULA (CRITICAL)
+When the user requests an N-column grid, you MUST use this formula EXACTLY.
+Never pick a card width first and then check if it fits — derive width FROM the column count.
+
+```
+CONTAINER_WIDTH = width of the parent container (e.g. 1720)
+GAP             = fixed gap between cards (use 20px)
+PADDING         = left/right padding inside the container (use 40px each side)
+
+USABLE_WIDTH    = CONTAINER_WIDTH - 2 * PADDING
+CARD_WIDTH      = floor((USABLE_WIDTH - (N_COLS - 1) * GAP) / N_COLS)
+CARD_STEP       = CARD_WIDTH + GAP          ← horizontal step per column
+
+Column positions (x relative to container):
+  col 0 → x = PADDING
+  col 1 → x = PADDING + CARD_STEP
+  col 2 → x = PADDING + 2 * CARD_STEP
+  ...
+
+Row positions (y relative to container):
+  row 0 → y = TOP_PADDING (e.g. 20)
+  row 1 → y = TOP_PADDING + CARD_HEIGHT + GAP
+  row 2 → y = TOP_PADDING + 2 * (CARD_HEIGHT + GAP)
+  ...
+```
+
+**3-column grid example (container width 1720, gap 20, padding 40):**
+- USABLE = 1720 - 80 = 1640
+- CARD_WIDTH = floor((1640 - 2*20) / 3) = floor(1600/3) = 533
+- CARD_STEP = 533 + 20 = 553
+- Col 0 → x=40,  Col 1 → x=593,  Col 2 → x=1146
+- Verify: 1146 + 533 = 1679 ≤ 1720 ✅
+
+**After calculating positions, count the cards per row before writing JSON.**
+A 3×3 grid MUST have exactly 3 cards in EVERY row and exactly 3 rows.
+A 4×2 grid MUST have exactly 4 cards in EVERY row and exactly 2 rows.
+If the count is wrong, recalculate — never output an uneven grid.
+
 ## Spacing Guidelines
 - **Section gaps**: 40-60px vertical spacing between major sections
 - **Card margins**: 20-30px between cards
