@@ -12,9 +12,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Manages SSE emitters keyed by session ID and provides a thread-local-based
- * emit API so any Spring bean in the processing chain can publish events
- * without needing the session ID passed explicitly.
+ * Gestionează emițătoarele SSE indexate după identificatorul de sesiune și oferă un API de
+ * emitere bazat pe {@link ThreadLocal}, astfel încât orice bean Spring din lanțul de
+ * procesare să poată publica evenimente fără a primi explicit identificatorul de sesiune.
  */
 @Slf4j
 @Component
@@ -30,8 +30,11 @@ public class AgentStatusPublisher {
     // ── Subscription ────────────────────────────────────────────────────────
 
     /**
-     * Called by the SSE endpoint when the frontend connects.
-     * Returns an emitter the controller hands back as the response body.
+     * Apelată de endpoint-ul SSE când frontend-ul se conectează. Creează și înregistrează
+     * un emițător pentru sesiune, pe care controlerul îl returnează ca răspuns.
+     *
+     * @param sessionId identificatorul sesiunii care se abonează
+     * @return emițătorul SSE asociat sesiunii
      */
     public SseEmitter subscribe(String sessionId) {
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT_MS);
@@ -51,19 +54,31 @@ public class AgentStatusPublisher {
 
     // ── Thread context ───────────────────────────────────────────────────────
 
-    /** Binds a session ID to the current processing thread. */
+    /**
+     * Leagă un identificator de sesiune de firul de execuție curent.
+     *
+     * @param sessionId identificatorul de sesiune asociat firului curent
+     */
     public void setSession(String sessionId) {
         sessionContext.set(sessionId);
     }
 
-    /** Must be called (in a finally block) after processing completes. */
+    /**
+     * Eliberează sesiunea legată de firul curent. Trebuie apelată (într-un bloc
+     * {@code finally}) după finalizarea procesării.
+     */
     public void clearSession() {
         sessionContext.remove();
     }
 
     // ── Emit ─────────────────────────────────────────────────────────────────
 
-    /** Sends a status event to the frontend for the current session. */
+    /**
+     * Trimite un eveniment de stare către frontend pentru sesiunea curentă. Dacă nu există
+     * o sesiune legată de firul curent sau un emițător activ, apelul nu are efect.
+     *
+     * @param event evenimentul de stare care trebuie publicat
+     */
     public void emit(AgentStatusEvent event) {
         String sessionId = sessionContext.get();
         if (sessionId == null) {
@@ -83,7 +98,10 @@ public class AgentStatusPublisher {
         }
     }
 
-    /** Completes and removes the emitter for the current session. */
+    /**
+     * Finalizează și elimină emițătorul SSE asociat sesiunii curente, închizând fluxul de
+     * evenimente.
+     */
     public void complete() {
         String sessionId = sessionContext.get();
         if (sessionId == null) {

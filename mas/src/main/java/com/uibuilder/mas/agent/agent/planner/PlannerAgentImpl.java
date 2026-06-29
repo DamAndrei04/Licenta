@@ -15,20 +15,29 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Default implementation of PlannerAgent with LLM integration.
- * Delegates planning to LLM-powered strategy components.
+ * Implementarea implicită a agentului Planificator, cu integrare LLM. Deleagă crearea
+ * planului către o strategie de planificare bazată pe LLM și publică rezultatul pe
+ * blackboard pentru agentul de construire.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class PlannerAgentImpl implements PlannerAgent {
-    
+
     private final DefaultPlanningStrategy planningStrategy;
     private final Blackboard blackboard;
     private final JsonUtils jsonUtils;
-    
+
     private final String agentId = "planner-" + UUID.randomUUID().toString().substring(0, 8);
-    
+
+    /**
+     * Creează planul de execuție al interfeței pe baza modelului analizat: stabilește
+     * paginile și pașii necesari, apoi stochează planul pe blackboard pentru agentul de
+     * construire.
+     *
+     * @param analyzedModel modelul UI analizat produs de agentul Analist
+     * @return planul UI generat (lista de pagini și pași)
+     */
     @Override
     public UIPlan createPlan(AnalyzedUIModel analyzedModel) {
         log.info("[{}] Creating execution plan from analysis: {}", agentId, analyzedModel.getAnalysisId());
@@ -71,6 +80,11 @@ public class PlannerAgentImpl implements PlannerAgent {
         return plan;
     }
     
+    /**
+     * Returnează identificatorul unic al acestei instanțe de agent.
+     *
+     * @return identificatorul agentului
+     */
     @Override
     public String getAgentId() {
         return agentId;

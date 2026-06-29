@@ -4,21 +4,23 @@ import com.uibuilder.mas.agent.agent.analyst.model.AnalyzedUIModel;
 import com.uibuilder.mas.agent.agent.planner.model.UIPlan;
 
 /**
- * Planner Agent interface - creates execution plans from analyzed models.
- * Does not implement planning logic directly - delegates to strategies.
+ * Interfața agentului Planificator — creează planuri de execuție pornind de la modelele
+ * analizate. Nu implementează direct logica de planificare, ci o deleagă strategiilor.
  */
 public interface PlannerAgent {
-    
+
     /**
-     * Generate a UI construction plan from analyzed model.
-     * 
-     * @param analyzedModel The analyzed semantic model
-     * @return Immutable execution plan
+     * Generează un plan de construire a interfeței pe baza modelului analizat.
+     *
+     * @param analyzedModel modelul semantic analizat
+     * @return planul de execuție (imutabil)
      */
     UIPlan createPlan(AnalyzedUIModel analyzedModel);
-    
+
     /**
-     * Get agent identifier.
+     * Returnează identificatorul agentului.
+     *
+     * @return identificatorul agentului
      */
     String getAgentId();
 }

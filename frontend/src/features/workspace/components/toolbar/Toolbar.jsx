@@ -4,12 +4,12 @@ import './Toolbar.css';
 import useBuilderStore from '@/store/useBuilderStore';
 import { exportToJSON } from "@/utils/ExportToJson";
 import { exportToSourceCode } from "@/utils/ExportToSourceCode";
-import { Undo2, Redo2, Trash2, Download, Upload, Save, Code, ChevronDown, FileJson } from 'lucide-react';
+import { Undo2, Redo2, Trash2, Download, Upload, Save, Code, ChevronDown, FileJson, ArrowLeft } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import AgentChat from "@/features/workspace/components/agentChat/AgentChat";
 
-const Toolbar = ({ handleClear, onSave, saving }) => {
+const Toolbar = ({ handleClear, onSave, saving, onBack }) => {
     const fileInputRef = useRef(null);
     const exportToggleRef = useRef(null);
     const [exportOpen, setExportOpen] = useState(false);
@@ -92,7 +92,13 @@ const Toolbar = ({ handleClear, onSave, saving }) => {
 
     return (
         <div className="toolbar">
-            <h2>TOOLBAR</h2>
+            <div className="toolbar-top">
+                <button className="back-button" onClick={onBack} title="Back to dashboard">
+                    <ArrowLeft size={18} />
+                    Back
+                </button>
+                <h2>TOOLBAR</h2>
+            </div>
             <div className="toolbar-items">
                 {Object.entries(ComponentRegistry).map(([key, { displayName }]) => (
                     <DraggableItem key={key} type={key} displayName={displayName} />

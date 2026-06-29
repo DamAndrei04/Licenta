@@ -22,19 +22,27 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Default strategy for generating UI construction plans.
- * Contains placeholder logic only.
+ * Strategia implicită de generare a planurilor de construire a interfeței. Pe baza
+ * modelului analizat construiește un prompt, îl trimite către LLM și transformă răspunsul
+ * JSON într-un plan structurat (pagini și pași).
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DefaultPlanningStrategy {
-    
+
     private final AnthropicClient anthropicClient;
     private final ObjectMapper objectMapper;
     private final PromptLoader promptLoader;
     private final PromptRenderer promptRenderer;
-    
+
+    /**
+     * Generează planul UI pe baza modelului analizat: construiește prompt-ul de
+     * planificare, apelează LLM-ul și asamblează planul cu paginile și pașii rezultați.
+     *
+     * @param analyzedModel modelul UI analizat (obiective și constrângeri)
+     * @return planul UI generat
+     */
     public UIPlan generatePlan(AnalyzedUIModel analyzedModel) {
         log.debug("Generating plan for analysis: {}", analyzedModel.getAnalysisId());
         
@@ -52,6 +60,13 @@ public class DefaultPlanningStrategy {
                 .build();
     }
     
+    /**
+     * Construiește prompt-ul de planificare, formatând obiectivele și constrângerile din
+     * modelul analizat și inserându-le în șablonul corespunzător.
+     *
+     * @param analyzedModel modelul analizat din care se extrag obiectivele și constrângerile
+     * @return prompt-ul final trimis către LLM
+     */
     private String buildPlanningPrompt(AnalyzedUIModel analyzedModel) {
         String goalsStr = analyzedModel.getGoals().stream()
                 .map(g -> String.format("- %s: %s (Priority: %s)", 
@@ -101,6 +116,13 @@ public class DefaultPlanningStrategy {
                 """, goalsStr, constraintsStr);*/
     }
 
+    /**
+     * Deserializează răspunsul LLM (un obiect JSON cu lista de pagini și pași) în obiecte
+     * {@link UIPage}. În caz de eroare la parsare, returnează o pagină implicită de rezervă.
+     *
+     * @param llmResponse răspunsul brut returnat de LLM
+     * @return lista paginilor parsate sau o pagină implicită dacă parsarea eșuează
+     */
     private List<UIPage> parsePagesFromLLMResponse(String llmResponse) {
         try {
             String jsonStr = extractJson(llmResponse);
@@ -158,6 +180,13 @@ public class DefaultPlanningStrategy {
         }
     }
     
+    /**
+     * Curăță răspunsul LLM de eventualele blocuri de cod Markdown (```json ... ```),
+     * lăsând doar conținutul JSON.
+     *
+     * @param response răspunsul brut returnat de LLM
+     * @return șirul JSON curățat de delimitatorii Markdown
+     */
     private String extractJson(String response) {
         String cleaned = response.trim();
         if (cleaned.startsWith("```json")) {

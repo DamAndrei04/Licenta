@@ -71,7 +71,7 @@ const Typography = ({updateItem, selectedElement}) => {
         setIsBold(style.fontWeight === 'bold' || parseInt(style.fontWeight) >= 700);
         setIsItalic(style.fontStyle === 'italic');
         setTextAlign(style.textAlign || 'left');
-        setTextContent(selectedElement.props?.children || '');
+        setTextContent(selectedElement.props?.children || selectedElement.props?.text || '');
 
         const textDecoration = style.textDecoration || '';
         setIsUnderline(textDecoration.includes('underline'));

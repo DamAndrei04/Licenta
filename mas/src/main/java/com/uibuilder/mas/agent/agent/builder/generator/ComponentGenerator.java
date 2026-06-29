@@ -21,7 +21,10 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * Generates UI component nodes from plan steps using LLM.
+ * Generează nodurile de componente UI pornind de la pașii planului, folosind LLM-ul.
+ * Pentru fiecare pagină construiește un prompt, apelează modelul și transformă răspunsul
+ * JSON în noduri de componente. Parsarea este tolerantă: la erori se folosesc valori
+ * implicite sau o componentă de rezervă, astfel încât generarea să nu eșueze brusc.
  */
 @Slf4j
 @Component
@@ -34,6 +37,14 @@ public class ComponentGenerator {
     private final PromptRenderer promptRenderer;
     private final AgentStatusPublisher statusPublisher;
 
+    /**
+     * Generează arborele de componente pentru întregul plan: parcurge fiecare pagină,
+     * apelează LLM-ul pentru a-i genera componentele și emite evenimente de progres. Între
+     * pagini așteaptă 30 de secunde pentru a respecta limita de rată OTPM a API-ului.
+     *
+     * @param plan planul UI care conține paginile și pașii de construire
+     * @return arborele de componente UI generat pentru toate paginile
+     */
     public UIComponentTree generate(UIPlan plan) {
         log.debug("Generating pages from plan: {}", plan.getPlanId());
 
@@ -93,6 +104,13 @@ public class ComponentGenerator {
                 .build();
     }
     
+    /**
+     * Construiește prompt-ul de generare a componentelor pentru o pagină, formatând pașii
+     * planului și inserându-i, împreună cu numele și ruta paginii, în șablonul corespunzător.
+     *
+     * @param page pagina pentru care se construiește prompt-ul
+     * @return prompt-ul final trimis către LLM
+     */
     private String buildPromptForPage(UIPage page) {
         String stepsStr = page.getSteps().stream()
                 .map(s -> String.format("%d. [%s] %s", s.getOrder(), s.getType(), s.getDescription()))
@@ -155,6 +173,14 @@ public class ComponentGenerator {
                 """, stepsStr);*/
     }
     
+    /**
+     * Deserializează răspunsul LLM (un tablou JSON de componente) în noduri rădăcină. La
+     * orice eroare de parsare nu aruncă excepție, ci returnează o componentă container
+     * implicită, asigurând o degradare elegantă.
+     *
+     * @param llmResponse răspunsul brut returnat de LLM
+     * @return lista nodurilor rădăcină parsate sau o componentă de rezervă dacă parsarea eșuează
+     */
     private List<UIComponentNode> parseComponentsFromLLMResponse(String llmResponse) {
         try {
             String jsonStr = extractJson(llmResponse);
@@ -186,6 +212,15 @@ public class ComponentGenerator {
         }
     }
     
+    /**
+     * Parsează recursiv un nod JSON într-un {@link UIComponentNode}, tolerând câmpurile
+     * lipsă prin valori implicite (id generat, tip {@code div}, proprietăți/layout goale) și
+     * procesând copiii. Returnează {@code null} dacă nodul nu poate fi parsat.
+     *
+     * @param nodeJson nodul JSON de parsat
+     * @param parentId identificatorul nodului părinte (sau {@code null} pentru rădăcină)
+     * @return nodul de componentă rezultat sau {@code null} în caz de eroare
+     */
     private UIComponentNode parseNode(JsonNode nodeJson, String parentId) {
         try {
             String nodeId = nodeJson.path("id").asText(UUID.randomUUID().toString());
@@ -230,6 +265,13 @@ public class ComponentGenerator {
         }
     }
     
+    /**
+     * Convertește recursiv un nod JSON în tipul Java corespunzător (șir, număr, boolean,
+     * hartă sau listă), folosit la popularea proprietăților și a layout-ului componentelor.
+     *
+     * @param node nodul JSON de convertit
+     * @return valoarea Java echivalentă a nodului
+     */
     private Object convertJsonNode(JsonNode node) {
         if (node.isTextual()) {
             return node.asText();
@@ -255,6 +297,13 @@ public class ComponentGenerator {
         return node.asText();
     }
     
+    /**
+     * Curăță răspunsul LLM de eventualele blocuri de cod Markdown (```json ... ```),
+     * lăsând doar conținutul JSON.
+     *
+     * @param response răspunsul brut returnat de LLM
+     * @return șirul JSON curățat de delimitatorii Markdown
+     */
     private String extractJson(String response) {
         String cleaned = response.trim();
         if (cleaned.startsWith("```json")) {

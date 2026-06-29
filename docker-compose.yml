@@ -1,16 +1,88 @@
 services:
+
+  # ─────────────────────────────────────────────────────────────
+  # Database
+  # ─────────────────────────────────────────────────────────────
   postgres:
     image: postgres:17
     container_name: uibuilder-db
-    ports:
-      - "5433:5432"
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: uibuilder
+    ports:
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d uibuilder"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - uibuilder-net
+
+  # ─────────────────────────────────────────────────────────────
+  # Backend REST API  (Spring Boot — port 8080)
+  # ─────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: uibuilder-backend
     restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/uibuilder
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - uibuilder-net
+
+  # ─────────────────────────────────────────────────────────────
+  # Multi-Agent System  (Spring Boot — port 8081)
+  # ─────────────────────────────────────────────────────────────
+  mas:
+    build:
+      context: .
+      dockerfile: mas/Dockerfile
+    container_name: uibuilder-mas
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      - backend
+    networks:
+      - uibuilder-net
+
+  # ─────────────────────────────────────────────────────────────
+  # Frontend  (React → nginx — port 3000)
+  # ─────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: uibuilder-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+      - mas
+    networks:
+      - uibuilder-net
+
+networks:
+  uibuilder-net:
+    driver: bridge
 
 volumes:
-    postgres_data:
+  postgres_data:

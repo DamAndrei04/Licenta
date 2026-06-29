@@ -15,8 +15,10 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * Transforms internal UIComponentTree to the ui-descriptor-v1.json schema format.
- * Schema-driven - uses SchemaPropertyHandler for validation.
+ * Transformă arborele intern {@link UIComponentTree} în formatul descriptorului conform
+ * schemei {@code ui-descriptor-v1.json}. Validarea proprietăților este delegată către
+ * {@link SchemaPropertyHandler}. Conține și corecții de layout pentru a evita suprapunerea
+ * secțiunilor și depășirea înălțimii părintelui de către copii.
  */
 @Slf4j
 @Component
@@ -24,9 +26,14 @@ import java.util.*;
 public class SchemaTransformer {
 
     private final SchemaPropertyHandler schemaHandler;
-    
+
     /**
-     * Transform UIComponentTree to UIDescriptor matching ui-descriptor-v1.json schema.
+     * Transformă un {@link UIComponentTree} într-un {@link UIDescriptor} conform schemei
+     * {@code ui-descriptor-v1.json}, generând identificatorii paginilor și marcând prima
+     * pagină ca activă.
+     *
+     * @param tree arborele de componente care trebuie transformat
+     * @return descriptorul UI conform schemei
      */
     public UIDescriptor transform(UIComponentTree tree) {
         log.info("Transforming UIComponentTree to ui-descriptor-v1.json schema");
@@ -56,6 +63,14 @@ public class SchemaTransformer {
         return descriptor;
     }
 
+    /**
+     * Transformă o pagină construită într-un {@link PageDescriptor}: aplatizează arborele
+     * de componente într-o hartă de elemente, colectează identificatorii rădăcină și aplică
+     * corecția de suprapunere a secțiunilor.
+     *
+     * @param builtPage pagina construită care trebuie transformată
+     * @return descriptorul de pagină rezultat
+     */
     private PageDescriptor transformToPage(UIBuiltPage builtPage) {
         PageDescriptor page = new PageDescriptor();
         page.setName(builtPage.getName());
@@ -80,12 +95,14 @@ public class SchemaTransformer {
     }
 
     /**
-     * Fix 1 — Root section overlap correction.
+     * Corecția 1 — eliminarea suprapunerii secțiunilor rădăcină. Secțiunile sunt așezate
+     * în ordinea intenționată de LLM (de sus în jos); pentru fiecare se calculează
+     * coordonata y minimă la care poate fi plasată astfel încât să nu se suprapună cu
+     * secțiunile deja așezate ale căror intervale pe axa x se intersectează. Secțiunile
+     * alăturate (la același y, dar fără suprapunere pe x) sunt lăsate neschimbate.
      *
-     * Root sections are placed in the LLM's intended array order (top → bottom).
-     * For each section, we compute the minimum y it can occupy given all sections
-     * already placed. Two sections conflict only when their x-ranges overlap
-     * (side-by-side sections at the same y are intentional and left untouched).
+     * @param droppedItems harta componentelor paginii (id → descriptor)
+     * @param rootIds identificatorii secțiunilor rădăcină, în ordinea de așezare
      */
     private void fixRootSectionOverlaps(Map<String, ComponentDescriptor> droppedItems,
                                         List<String> rootIds) {
@@ -123,6 +140,17 @@ public class SchemaTransformer {
         }
     }
 
+    /**
+     * Aplatizează recursiv un nod de componentă și descendenții săi într-o hartă de
+     * descriptori: mapează tipul la unul permis de schemă, validează proprietățile și
+     * layout-ul, completează valori implicite și aplică corecția de depășire a înălțimii
+     * părintelui de către copii. Nodurile fără părinte sunt adăugate la lista de rădăcini.
+     *
+     * @param node nodul curent de aplatizat
+     * @param droppedItems harta în care se acumulează descriptorii (id → descriptor)
+     * @param rootIds lista identificatorilor rădăcină, completată pentru nodurile fără părinte
+     * @param parentId identificatorul părintelui (sau {@code null} pentru rădăcină)
+     */
     private void flattenNode(UIComponentNode node,
                              Map<String, ComponentDescriptor> droppedItems,
                              List<String> rootIds,
@@ -188,7 +216,14 @@ public class SchemaTransformer {
         }
     }
 
-    /** Safely read a numeric value from a layout map as a double. */
+    /**
+     * Citește în mod sigur o valoare numerică dintr-o hartă de layout, convertită la
+     * {@code double}.
+     *
+     * @param layout harta de layout
+     * @param key cheia valorii căutate
+     * @return valoarea numerică sau {@code 0.0} dacă lipsește ori nu este numerică
+     */
     private double layoutDouble(Map<String, Object> layout, String key) {
         if (layout == null) return 0.0;
         Object val = layout.get(key);
@@ -197,7 +232,12 @@ public class SchemaTransformer {
     }
     
     /**
-     * Map internal component types to schema-allowed types.
+     * Mapează un tip intern de componentă la unul dintre tipurile permise de schemă
+     * (de ex. {@code label}, {@code card}, {@code input}, {@code button}), folosind o
+     * valoare implicită ({@code card}) pentru tipurile necunoscute.
+     *
+     * @param internalType tipul intern al componentei
+     * @return tipul permis de schemă corespunzător
      */
     private String mapToAllowedType(String internalType) {
         if (internalType == null) {

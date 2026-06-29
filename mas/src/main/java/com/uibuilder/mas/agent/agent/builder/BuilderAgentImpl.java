@@ -17,20 +17,29 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Default implementation of BuilderAgent with LLM integration.
- * Delegates component generation to LLM-powered generators.
+ * Implementarea implicită a agentului Constructor (Builder), cu integrare LLM. Deleagă
+ * generarea efectivă a componentelor către {@link ComponentGenerator} și publică
+ * arborele de componente rezultat pe blackboard pentru agentul de validare.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class BuilderAgentImpl implements BuilderAgent {
-    
+
     private final ComponentGenerator componentGenerator;
     private final Blackboard blackboard;
     private final JsonUtils jsonUtils;
-    
+
     private final String agentId = "builder-" + UUID.randomUUID().toString().substring(0, 8);
-    
+
+    /**
+     * Construiește arborele de componente UI pe baza planului: generează componentele
+     * fiecărei pagini (prin apeluri LLM) și stochează un mesaj cu rezultatul pe blackboard
+     * pentru agentul de validare.
+     *
+     * @param plan planul UI produs de agentul Planificator
+     * @return arborele de componente UI generat
+     */
     @Override
     public UIComponentTree build(UIPlan plan) {
         log.info("[{}] Building UI from plan: {}", agentId, plan.getPlanId());
@@ -74,6 +83,13 @@ public class BuilderAgentImpl implements BuilderAgent {
         return tree;
     }
     
+    /**
+     * Transformă recursiv un nod de componentă într-o reprezentare de tip {@code Map}
+     * (id, tip, proprietăți, layout și copii) folosită la serializarea mesajului.
+     *
+     * @param node nodul de componentă care trebuie transformat
+     * @return reprezentarea sub formă de hartă a nodului și a copiilor săi
+     */
     private Map<String, Object> buildNodeMap(UIComponentNode node) {
         return Map.of(
                 "id", node.getNodeId(),
@@ -85,6 +101,11 @@ public class BuilderAgentImpl implements BuilderAgent {
         );
     }
     
+    /**
+     * Returnează identificatorul unic al acestei instanțe de agent.
+     *
+     * @return identificatorul agentului
+     */
     @Override
     public String getAgentId() {
         return agentId;

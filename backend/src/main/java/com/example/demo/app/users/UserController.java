@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * Controler REST care implementează {@link UserApi}. Primește cererile HTTP legate de
+ * utilizatori, deleagă logica de afaceri către {@link UserService} și împachetează
+ * rezultatul în răspunsuri HTTP cu codul de stare corespunzător.
+ */
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -20,6 +25,10 @@ public class UserController implements UserApi {
 
     private final UserService userService;
 
+    /**
+     * {@inheritDoc}
+     * Deleagă înregistrarea către serviciu și returnează utilizatorul creat cu stare 201.
+     */
     @Override
     public ResponseEntity<UserResponseDto> createUser(UserRequestDto userRequestDto){
         log.info("Received request for createUser with {}", userRequestDto);
@@ -28,6 +37,10 @@ public class UserController implements UserApi {
                 .body(userService.createUser(userRequestDto));
     }
 
+    /**
+     * {@inheritDoc}
+     * Returnează lista tuturor utilizatorilor cu stare 200.
+     */
     @Override
     public ResponseEntity<List<UserResponseDto>> getAllUsers(){
         log.info("Received request for getAllUsers");
@@ -36,6 +49,10 @@ public class UserController implements UserApi {
                 .body(userService.getAllUsers());
     }
 
+    /**
+     * {@inheritDoc}
+     * Returnează utilizatorul identificat prin {@code userId} cu stare 200.
+     */
     @Override
     public ResponseEntity<UserResponseDto> getUserById( Long userId){
         log.info("Received request for getUserById with id: {}", userId);
@@ -44,6 +61,10 @@ public class UserController implements UserApi {
                 .body(userService.getUserById(userId));
     }
 
+    /**
+     * {@inheritDoc}
+     * Returnează datele utilizatorului curent autenticat cu stare 200.
+     */
     @Override
     public ResponseEntity<UserResponseDto> getCurrentUser() {
         log.info("Received request for getCurrentUser");
@@ -52,6 +73,10 @@ public class UserController implements UserApi {
                 .body(userService.getCurrentUser());
     }
 
+    /**
+     * {@inheritDoc}
+     * Deleagă actualizarea către serviciu și returnează utilizatorul actualizat cu stare 200.
+     */
     @Override
     public ResponseEntity<UserResponseDto> updateUser(UpdateUserRequestDto updateUserRequestDto, Long userId) {
         log.info("Received request for updateUser with id: {} and {}", userId, updateUserRequestDto);
@@ -60,6 +85,10 @@ public class UserController implements UserApi {
                 .body(userService.updateUser(updateUserRequestDto, userId));
     }
 
+    /**
+     * {@inheritDoc}
+     * Deleagă ștergerea către serviciu și returnează stare 204 fără conținut.
+     */
     @Override
     public ResponseEntity<Void> deleteUser(Long userId) {
         log.info("Received request for deleteUser with id: {}", userId);

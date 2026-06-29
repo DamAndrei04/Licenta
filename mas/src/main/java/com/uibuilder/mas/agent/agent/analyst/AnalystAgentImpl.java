@@ -20,22 +20,31 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Default implementation of AnalystAgent with LLM integration.
- * Orchestrates extraction logic via LLM-powered extractors.
+ * Implementarea implicită a agentului Analist, cu integrare LLM. Coordonează logica de
+ * extragere prin componente specializate (extragerea obiectivelor și a constrângerilor
+ * cu ajutorul LLM, urmată de detectarea conflictelor) și publică rezultatul pe blackboard.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AnalystAgentImpl implements AnalystAgent {
-    
+
     private final GoalExtractor goalExtractor;
     private final ConstraintExtractor constraintExtractor;
     private final ConflictDetector conflictDetector;
     private final Blackboard blackboard;
     private final JsonUtils jsonUtils;
-    
+
     private final String agentId = "analyst-" + UUID.randomUUID().toString().substring(0, 8);
-    
+
+    /**
+     * Analizează cerința utilizatorului: extrage obiectivele și constrângerile (prin
+     * apeluri LLM), detectează conflictele dintre ele și construiește modelul UI analizat,
+     * pe care îl stochează pe blackboard pentru agentul de planificare.
+     *
+     * @param userRequirement cerința în limbaj natural primită de la utilizator
+     * @return modelul UI analizat (obiective, constrângeri și conflicte)
+     */
     @Override
     public AnalyzedUIModel analyze(String userRequirement) {
         log.info("[{}] Starting UI analysis for requirement: '{}'", agentId, userRequirement);
@@ -100,6 +109,11 @@ public class AnalystAgentImpl implements AnalystAgent {
         return analyzedModel;
     }
     
+    /**
+     * Returnează identificatorul unic al acestei instanțe de agent.
+     *
+     * @return identificatorul agentului
+     */
     @Override
     public String getAgentId() {
         return agentId;

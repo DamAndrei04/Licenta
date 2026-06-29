@@ -26,6 +26,12 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Serviciu care gestionează starea completă a spațiului de lucru (workspace) al unui
+ * proiect: salvarea întregii structuri de pagini și componente trimise din editorul
+ * drag&drop și reconstruirea acesteia pentru încărcare. Reconstituie ierarhia
+ * părinte-copil a componentelor pe baza identificatorilor externi din frontend.
+ */
 @Service
 @RequiredArgsConstructor
 public class WorkspaceService {
@@ -35,6 +41,19 @@ public class WorkspaceService {
     private final PageRepository pageRepository;
     private final ProjectRepository projectRepository;
 
+    /**
+     * Salvează starea completă a unui proiect: șterge paginile existente și
+     * recreează paginile și componentele primite, refăcând ierarhia părinte-copil a
+     * componentelor pe niveluri de adâncime.
+     *
+     * @param dto starea workspace-ului trimisă din frontend (proiect, pagini și
+     *            elementele plasate pe fiecare pagină)
+     * @return DTO de răspuns care confirmă succesul operației de salvare
+     * @throws ProjectNotFoundException dacă proiectul nu există
+     * @throws PageNotFoundException dacă o pagină nou creată nu poate fi regăsită
+     * @throws IllegalStateException dacă se detectează o referință părinte circulară
+     *                               sau ruptă între componente
+     */
     @Transactional
     public WorkspaceResponseDto saveProjectState(WorkspaceRequestDto dto) {
 
@@ -110,6 +129,15 @@ public class WorkspaceService {
                 .build();
     }
 
+    /**
+     * Reconstruiește starea workspace-ului unui proiect pentru a fi încărcată în
+     * editor: extrage paginile și componentele din baza de date și reconstituie
+     * relațiile părinte-copil sub forma așteptată de frontend.
+     *
+     * @param projectId identificatorul proiectului a cărui stare se încarcă
+     * @return DTO-ul care conține paginile și elementele plasate ale proiectului
+     * @throws ProjectNotFoundException dacă proiectul nu există
+     */
     @Transactional
     public WorkspaceRequestDto getProjectWorkspace(Long projectId) {
         projectRepository.findById(projectId)
@@ -160,6 +188,15 @@ public class WorkspaceService {
                 .build();
     }
 
+    /**
+     * Convertește un element plasat (DTO din frontend) într-o entitate componentă
+     * asociată unei pagini, copiind tipul, proprietățile, layout-ul, evenimentele și
+     * starea. Relația cu părintele este stabilită separat de apelant.
+     *
+     * @param dto elementul plasat provenit din editor
+     * @param page pagina căreia îi va aparține componenta
+     * @return entitatea componentă rezultată, gata de persistare
+     */
     private ComponentEntity toEntity(DroppedItemDto dto, PageEntity page) {
         ComponentEntity entity = new ComponentEntity();
         entity.setExternalId(dto.getId());

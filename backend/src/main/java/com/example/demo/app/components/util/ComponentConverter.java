@@ -6,8 +6,19 @@ import com.example.demo.app.components.ComponentEntity;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Clasă utilitară de conversie între entitatea componentă și DTO-ul de răspuns expus
+ * prin API.
+ */
 public class ComponentConverter {
 
+    /**
+     * Convertește o entitate componentă în DTO-ul de răspuns corespunzător, rezolvând
+     * identificatorii externi ai copiilor și ai părintelui.
+     *
+     * @param component entitatea componentă care trebuie convertită
+     * @return DTO-ul de răspuns corespunzător componentei
+     */
     public static ComponentResponseDto convertToResponseDto(ComponentEntity component) {
 
         List<String> childrenIds = component.getChildren() != null

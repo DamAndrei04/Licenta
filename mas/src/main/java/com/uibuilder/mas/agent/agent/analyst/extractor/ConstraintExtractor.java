@@ -16,18 +16,26 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Extracts constraints from user requirements using LLM.
+ * Extrage constrângerile de design din cerința utilizatorului folosind un apel LLM.
+ * Construiește prompt-ul pe baza unui șablon, trimite cererea către model și
+ * deserializează răspunsul JSON în obiecte {@link Constraint}.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ConstraintExtractor {
-    
+
     private final AnthropicClient anthropicClient;
     private final ObjectMapper objectMapper;
     private final PromptLoader promptLoader;
     private final PromptRenderer promptRenderer;
-    
+
+    /**
+     * Extrage constrângerile de design din cerința utilizatorului printr-un apel LLM.
+     *
+     * @param userRequirement cerința în limbaj natural a utilizatorului
+     * @return lista constrângerilor extrase
+     */
     public List<Constraint> extractConstraints(String userRequirement) {
         log.debug("Extracting constraints from user requirement using LLM");
         
@@ -37,6 +45,13 @@ public class ConstraintExtractor {
         return parseConstraintsFromLLMResponse(llmResponse);
     }
     
+    /**
+     * Construiește prompt-ul pentru extragerea constrângerilor, încărcând șablonul
+     * corespunzător și inserând cerința utilizatorului.
+     *
+     * @param userRequirement cerința utilizatorului inserată în șablon
+     * @return prompt-ul final trimis către LLM
+     */
     private String buildConstraintExtractionPrompt(String userRequirement) {
 
         String template = promptLoader.load("analyst_constraint_extraction_v1.md");
@@ -70,6 +85,13 @@ public class ConstraintExtractor {
                 """, userRequirement);*/
     }
     
+    /**
+     * Deserializează răspunsul LLM (un tablou JSON) în obiecte {@link Constraint}. În caz
+     * de eroare la parsare, returnează o constrângere implicită de rezervă.
+     *
+     * @param llmResponse răspunsul brut returnat de LLM
+     * @return lista constrângerilor parsate sau o constrângere implicită dacă parsarea eșuează
+     */
     private List<Constraint> parseConstraintsFromLLMResponse(String llmResponse) {
         try {
             String jsonStr = extractJson(llmResponse);
@@ -107,6 +129,13 @@ public class ConstraintExtractor {
         }
     }
     
+    /**
+     * Curăță răspunsul LLM de eventualele blocuri de cod Markdown (```json ... ```),
+     * lăsând doar conținutul JSON.
+     *
+     * @param response răspunsul brut returnat de LLM
+     * @return șirul JSON curățat de delimitatorii Markdown
+     */
     private String extractJson(String response) {
         String cleaned = response.trim();
         if (cleaned.startsWith("```json")) {

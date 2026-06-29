@@ -125,7 +125,7 @@ export default function Dashboard() {
                         <span className="db-user-dot" />
                         {user?.username}
                     </span>
-                    <a href="/login" className="db-logout">Sign out</a>
+                    <a href="/login" className="db-logout" onClick={() => { localStorage.removeItem("username"); localStorage.removeItem("password"); }}>Sign out</a>
                 </div>
             </nav>
 
