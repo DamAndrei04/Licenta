@@ -12,13 +12,21 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Detects conflicts between goals and constraints.
- * Contains placeholder logic only.
+ * Detectează conflictele dintre obiective și constrângeri. În prezent conține doar o
+ * logică minimală (semnalează constrângerile nesatisfăcute), fiind un punct de extindere.
  */
 @Slf4j
 @Component
 public class ConflictDetector {
-    
+
+    /**
+     * Detectează conflictele dintre obiectivele și constrângerile date. În implementarea
+     * curentă generează câte un conflict pentru fiecare constrângere nesatisfăcută.
+     *
+     * @param goals lista obiectivelor analizate
+     * @param constraints lista constrângerilor analizate
+     * @return lista conflictelor detectate (posibil goală)
+     */
     public List<Conflict> detectConflicts(List<Goal> goals, List<Constraint> constraints) {
         log.debug("Detecting conflicts between {} goals and {} constraints", 
                 goals.size(), constraints.size());

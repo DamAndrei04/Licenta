@@ -15,7 +15,9 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 /**
- * Client for interacting with Anthropic's Claude API.
+ * Variantă alternativă de client pentru API-ul Claude de la Anthropic (construiește
+ * cererea, o trimite și extrage textul răspunsului). Funcțional similară cu
+ * {@link com.uibuilder.mas.agent.client.AnthropicClient}.
  */
 @Slf4j
 @Component
@@ -41,10 +43,12 @@ public class AgentConfig {
             .build();
 
     /**
-     * Send a message to Claude and get the response.
+     * Trimite un prompt către modelul Claude și returnează textul răspunsului.
      *
-     * @param prompt The prompt to send
-     * @return The text response from Claude
+     * @param prompt prompt-ul care trebuie trimis modelului
+     * @return textul răspunsului generat de Claude
+     * @throws IllegalStateException dacă cheia de API nu este configurată
+     * @throws RuntimeException dacă apelul către API eșuează sau întoarce o eroare
      */
     public String sendMessage(String prompt) {
         if (apiKey == null || apiKey.isEmpty()) {
@@ -84,6 +88,14 @@ public class AgentConfig {
         }
     }
 
+    /**
+     * Construiește corpul JSON al cererii către API (model, număr maxim de token-uri și
+     * prompt-ul escapat).
+     *
+     * @param prompt prompt-ul inclus în cerere
+     * @return corpul JSON al cererii
+     * @throws Exception dacă apare o eroare la construirea corpului cererii
+     */
     private String buildRequestBody(String prompt) throws Exception {
         String json = String.format("""
                 {
@@ -101,6 +113,13 @@ public class AgentConfig {
         return json;
     }
 
+    /**
+     * Extrage textul generat din corpul JSON al răspunsului API.
+     *
+     * @param responseBody corpul JSON al răspunsului
+     * @return textul răspunsului
+     * @throws Exception dacă formatul răspunsului este neașteptat
+     */
     private String extractTextFromResponse(String responseBody) throws Exception {
         JsonNode root = objectMapper.readTree(responseBody);
         JsonNode content = root.path("content");
@@ -112,6 +131,13 @@ public class AgentConfig {
         throw new RuntimeException("Unexpected response format from Anthropic API");
     }
 
+    /**
+     * Escapează caracterele speciale dintr-un text pentru a fi incluse în siguranță într-un
+     * șir JSON.
+     *
+     * @param text textul care trebuie escapat
+     * @return textul cu caracterele speciale escapate
+     */
     private String escapeJson(String text) {
         return text.replace("\\", "\\\\")
                 .replace("\"", "\\\"")

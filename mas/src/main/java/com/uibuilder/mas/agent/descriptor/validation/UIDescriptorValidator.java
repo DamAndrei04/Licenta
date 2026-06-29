@@ -8,13 +8,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Validates UI descriptors for structural integrity.
- * Isolated validation logic - no business rules.
+ * Validează integritatea structurală a descriptorilor UI (existența versiunii, a paginilor
+ * și a câmpurilor obligatorii ale paginilor). Logica de validare este izolată, fără reguli
+ * de afaceri.
  */
 @Slf4j
 @Component
 public class UIDescriptorValidator {
-    
+
+    /**
+     * Validează un descriptor UI: verifică prezența versiunii și a cel puțin unei pagini,
+     * apoi validează fiecare pagină.
+     *
+     * @param descriptor descriptorul UI care trebuie validat
+     * @return rezultatul validării (valid/invalid și lista erorilor)
+     */
     public ValidationResult validate(UIDescriptor descriptor) {
         log.debug("Validating UI descriptor");
         List<String> errors = new ArrayList<>();
@@ -40,6 +48,13 @@ public class UIDescriptorValidator {
         return new ValidationResult(isValid, errors);
     }
     
+    /**
+     * Validează paginile unui descriptor: fiecare pagină trebuie să aibă un nume, o rută
+     * validă (care începe cu „/”) și un tablou {@code rootIds} (posibil gol).
+     *
+     * @param descriptor descriptorul ale cărui pagini se validează
+     * @param errors lista în care se acumulează mesajele de eroare
+     */
     private void validatePages(UIDescriptor descriptor, List<String> errors) {
         descriptor.getPages().forEach((pageId, page) -> {
             if (page.getName() == null || page.getName().isEmpty()) {
@@ -56,5 +71,11 @@ public class UIDescriptorValidator {
         });
     }
     
+    /**
+     * Rezultatul validării unui descriptor: indicatorul de validitate și lista erorilor.
+     *
+     * @param valid {@code true} dacă descriptorul este valid
+     * @param errors lista mesajelor de eroare (goală dacă este valid)
+     */
     public record ValidationResult(boolean valid, List<String> errors) {}
 }

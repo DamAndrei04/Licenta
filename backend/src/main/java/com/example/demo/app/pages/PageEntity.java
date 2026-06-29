@@ -11,6 +11,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entitate JPA care reprezintă o pagină persistată în tabela {@code pages}.
+ * O pagină aparține unui proiect, are o rută și conține o listă de componente.
+ */
 @Entity
 @Data
 @NoArgsConstructor
@@ -40,11 +44,17 @@ public class PageEntity {
     @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ComponentEntity> components = new ArrayList<>();
 
+    /**
+     * Callback JPA apelat înainte de prima persistare; setează data de creare.
+     */
     @PrePersist
     private void onCreate(){
         createdAt = LocalDateTime.now();
     }
 
+    /**
+     * Callback JPA apelat înainte de fiecare actualizare; setează data ultimei modificări.
+     */
     @PreUpdate
     private void onUpdate(){
         updatedAt = LocalDateTime.now();

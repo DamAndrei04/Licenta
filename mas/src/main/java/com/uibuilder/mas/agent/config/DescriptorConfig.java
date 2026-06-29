@@ -6,11 +6,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuration for descriptor loading and parsing.
+ * Configurație pentru încărcarea și parsarea descriptorilor. Definește bean-ul
+ * {@link ObjectMapper} folosit în tot modulul.
  */
 @Configuration
 public class DescriptorConfig {
-    
+
+    /**
+     * Definește bean-ul {@link ObjectMapper}, configurat cu suport pentru tipurile de
+     * dată/oră din Java (modulul JavaTime).
+     *
+     * @return instanța {@link ObjectMapper} configurată
+     */
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();

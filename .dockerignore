@@ -1,0 +1,7 @@
+frontend/
+.git/
+**/.gradle/
+**/build/
+**/.idea/
+**/*.iml
+**/node_modules/

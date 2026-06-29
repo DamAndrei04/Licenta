@@ -18,6 +18,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+/**
+ * Configurația principală de securitate a aplicației (Spring Security). Definește
+ * lanțul de filtre HTTP, regulile de autorizare a rutelor, politica de sesiune fără
+ * stare și managerul de autenticare.
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -27,6 +32,15 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final CorsConfigurationSource corsConfigurationSource;
 
+    /**
+     * Configurează lanțul de filtre de securitate: activează CORS, dezactivează CSRF,
+     * permite public înregistrarea și documentația Swagger, cere autenticare pentru
+     * restul rutelor și folosește sesiuni fără stare cu autenticare HTTP Basic.
+     *
+     * @param http obiectul de configurare a securității HTTP
+     * @return lanțul de filtre de securitate construit
+     * @throws Exception dacă apare o eroare la construirea configurației
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -43,6 +57,12 @@ public class SecurityConfig {
     }
 
 
+    /**
+     * Definește managerul de autenticare bazat pe un {@link DaoAuthenticationProvider}
+     * care folosește serviciul de detalii ale utilizatorului și codificatorul de parole.
+     *
+     * @return managerul de autenticare configurat
+     */
     @Bean
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);

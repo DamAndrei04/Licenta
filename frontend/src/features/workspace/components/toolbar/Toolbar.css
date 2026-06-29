@@ -9,11 +9,26 @@
     overflow: visible;
 }
 
+.toolbar-top {
+    flex-basis: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 .toolbar h2 {
     margin: 0;
     font-size: 1.2rem;
     font-weight: 600;
-    flex-basis: 100%;
+}
+
+.back-button {
+    background-color: #e9ecef;
+    color: #333;
+}
+
+.back-button:hover {
+    background-color: #dde1e5;
 }
 
 .toolbar-items {

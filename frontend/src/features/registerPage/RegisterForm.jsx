@@ -47,6 +47,8 @@ export default function RegisterForm() {
 
         try {
             await register({ username: form.username, password: form.password });
+            localStorage.setItem("username", form.username);
+            localStorage.setItem("password", form.password);
             setSubmitted(true); // ← only after successful API call
         } catch (err) {
             setErrors({ general: err.response?.data?.message || "Registration failed." });

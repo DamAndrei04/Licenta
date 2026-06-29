@@ -9,36 +9,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Shared memory (blackboard) for agent communication.
- * Type-safe, non-persistent storage.
+ * Memoria partajată (blackboard) folosită pentru comunicarea dintre agenți. Stochează,
+ * pe segmente, rezultatele fazelor (analiză, planificare, validare) și mesajele schimbate.
+ * Stocarea este în memorie, fără persistență.
  */
 @Slf4j
 @Getter
 @Component
 public class Blackboard {
-    
+
     private final AnalysisMemory analysisMemory = new AnalysisMemory();
     private final PlanningMemory planningMemory = new PlanningMemory();
     private final ValidationMemory validationMemory = new ValidationMemory();
     private final List<AgentMessage> messages = new ArrayList<>();
-    
+
     /**
-     * Store a message from an agent.
+     * Stochează un mesaj emis de un agent.
+     *
+     * @param message mesajul care trebuie stocat
      */
     public void storeMessage(AgentMessage message) {
         log.debug("Storing message from {} to {}", message.getSenderAgentId(), message.getTargetAgentId());
         messages.add(message);
     }
-    
+
     /**
-     * Get all messages.
+     * Returnează toate mesajele stocate.
+     *
+     * @return o copie a listei de mesaje
      */
     public List<AgentMessage> getAllMessages() {
         return new ArrayList<>(messages);
     }
-    
+
     /**
-     * Clear all memory segments.
+     * Golește toate segmentele de memorie și lista de mesaje.
      */
     public void clear() {
         log.info("Clearing blackboard memory");

@@ -12,6 +12,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entitate JPA care reprezintă un proiect persistat în tabela {@code projects}.
+ * Un proiect aparține unui utilizator și conține o listă de pagini.
+ */
 @Entity
 @Data
 @NoArgsConstructor
@@ -42,11 +46,17 @@ public class ProjectEntity {
     private List<PageEntity> pages = new ArrayList<>();
 
 
+    /**
+     * Callback JPA apelat înainte de prima persistare; setează data de creare.
+     */
     @PrePersist
     private void onCreate(){
         createdAt = LocalDateTime.now();
     }
 
+    /**
+     * Callback JPA apelat înainte de fiecare actualizare; setează data ultimei modificări.
+     */
     @PreUpdate
     private void onUpdate(){
         updatedAt = LocalDateTime.now();

@@ -172,9 +172,7 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                 width: renderLayout.width,
                 height: renderLayout.height,
                 border: 'none',
-                backgroundColor: mergedProps.style?.backgroundColor
-                    ? undefined
-                    : getEffectiveBackground(item.id, allItems)
+                backgroundColor: mergedProps.style?.backgroundColor ?? getEffectiveBackground(item.id, allItems)
             }}
         >
             <div
@@ -212,15 +210,24 @@ const DroppedItem = ({ item, allItems, getChildren, onDrop, selectItem, updateIt
                             ))}
                     </div>
                 ) : (
-                    <Component
-                        {...mergedProps}
+                    <div
                         style={{
                             width: '100%',
                             height: '100%',
                             boxSizing: 'border-box',
                             ...(mergedProps.style || {}),
                         }}
-                    />
+                    >
+                        <Component
+                            {...mergedProps}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                boxSizing: 'border-box',
+                                ...(mergedProps.style || {}),
+                            }}
+                        />
+                    </div>
                 )}
 
                 {isSelected && (

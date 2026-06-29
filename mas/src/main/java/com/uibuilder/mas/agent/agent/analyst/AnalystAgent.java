@@ -3,21 +3,23 @@ package com.uibuilder.mas.agent.agent.analyst;
 import com.uibuilder.mas.agent.agent.analyst.model.AnalyzedUIModel;
 
 /**
- * Analyst Agent interface - analyzes user requirements and extracts semantic models.
- * Delegates reasoning to extractors powered by LLM.
+ * Interfața agentului Analist — analizează cerințele utilizatorului și extrage modelul
+ * semantic al interfeței. Raționamentul este delegat extractoarelor bazate pe LLM.
  */
 public interface AnalystAgent {
-    
+
     /**
-     * Analyze a user requirement and produce a semantic model.
-     * 
-     * @param userRequirement The user's request (e.g., "Make a CV Website...")
-     * @return Immutable analyzed model
+     * Analizează o cerință a utilizatorului și produce un model semantic.
+     *
+     * @param userRequirement cerința utilizatorului (ex. „Creează un site de tip CV...”)
+     * @return modelul analizat (imutabil)
      */
     AnalyzedUIModel analyze(String userRequirement);
-    
+
     /**
-     * Get agent identifier.
+     * Returnează identificatorul agentului.
+     *
+     * @return identificatorul agentului
      */
     String getAgentId();
 }

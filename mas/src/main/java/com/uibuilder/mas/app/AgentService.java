@@ -18,6 +18,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Serviciu de nivel aplicație al modulului MAS. Coordonează generarea interfeței: pornește
+ * pipeline-ul de agenți prin {@link AgentOrchestrator}, transformă rezultatul în descriptor
+ * UI conform schemei prin {@link SchemaTransformer} și gestionează ciclul de viață al
+ * sesiunii de evenimente SSE.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,6 +33,14 @@ public class AgentService {
     private final SchemaTransformer schemaTransformer;
     private final AgentStatusPublisher statusPublisher;
 
+    /**
+     * Generează descriptorul UI pentru un prompt: leagă sesiunea de evenimente, execută
+     * pipeline-ul de agenți și transformă arborele de componente rezultat în descriptor
+     * conform schemei. La final, finalizează și eliberează sesiunea de evenimente.
+     *
+     * @param promptRequestDto cererea cu prompt-ul și identificatorul de sesiune
+     * @return descriptorul UI generat, conform schemei
+     */
     public UIDescriptor generateJSON(PromptRequestDto promptRequestDto) {
         String sessionId = promptRequestDto.getSessionId();
         if (sessionId != null && !sessionId.isBlank()) {

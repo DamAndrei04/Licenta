@@ -5,7 +5,7 @@ import lombok.Value;
 import java.util.List;
 
 /**
- * Immutable validation result.
+ * Rezultatul (imutabil) al validării: indicatorul de validitate și lista încălcărilor găsite.
  */
 @Value
 public class ValidationResult {

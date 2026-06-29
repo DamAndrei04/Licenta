@@ -20,13 +20,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 /**
- * Multi-Agent System (MAS) Application for UI Builder with Anthropic LLM integration.
+ * Punctul de intrare al modulului MAS (Sistemul Multi-Agent) pentru constructorul de
+ * interfețe, cu integrare LLM Anthropic. Pornește aplicația Spring Boot care expune
+ * pipeline-ul de agenți de generare a interfeței.
  */
 @Slf4j
 @SpringBootApplication
 @RequiredArgsConstructor
 public class MasApplication {
-    
+
     private final AnalystAgent analystAgent;
     private final PlannerAgent plannerAgent;
     private final BuilderAgent builderAgent;
@@ -35,6 +37,11 @@ public class MasApplication {
     private final JsonUtils jsonUtils;
     private final SchemaTransformer schemaTransformer;
 
+    /**
+     * Metoda principală care pornește aplicația Spring Boot a modulului MAS.
+     *
+     * @param args argumentele liniei de comandă
+     */
     public static void main(String[] args) {
         SpringApplication.run(MasApplication.class, args);
     }

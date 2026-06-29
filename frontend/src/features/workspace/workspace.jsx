@@ -11,17 +11,20 @@ import useBuilderStore from '@/store/useBuilderStore';
 import {getProjectWorkspace, saveProjectState} from '@/api/WorkspaceService';
 import { sendPromptToAgent } from '@/api/AgentService';
 import { getProjectById } from '@/api/ProjectService';
+import LeaveConfirmModal from './components/leaveConfirmModal/LeaveConfirmModal';
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 export default function Main() {
     const { projectId } = useParams();
+    const navigate = useNavigate();
 
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [prompt, setPrompt] = useState('');
+    const [showLeaveModal, setShowLeaveModal] = useState(false);
 
     // Store state
     const activePageId = useBuilderStore((state) => state.activePageId);
@@ -66,7 +69,7 @@ export default function Main() {
         fetchWorkspace();
     }, [projectId]);
 
-    // Save current canvas state to backend
+    // Save current canvas state to backend. Returns true on success.
     const handleSave = async () => {
         setSaving(true);
         try {
@@ -74,11 +77,33 @@ export default function Main() {
                 projectId: Number(projectId),
                 pages,
             });
+            return true;
         } catch (err) {
             console.error('Failed to save workspace', err);
+            return false;
         } finally {
             setSaving(false);
         }
+    };
+
+    // ── Leaving the workspace back to the dashboard ──────────────────
+    const handleBack = () => setShowLeaveModal(true);
+
+    const handleCancelLeave = () => setShowLeaveModal(false);
+
+    const handleLeaveWithoutSaving = () => {
+        setShowLeaveModal(false);
+        navigate('/dashboard');
+    };
+
+    const handleSaveAndLeave = async () => {
+        const ok = await handleSave();
+        if (ok) {
+            setShowLeaveModal(false);
+            navigate('/dashboard');
+        }
+        // On failure the modal stays open (error is logged) so the user
+        // can retry or choose to leave without saving.
     };
 
     // Send prompt to MAS agent, merge generated pages into store
@@ -150,6 +175,7 @@ export default function Main() {
                         projectName={project?.name}
                         onSave={handleSave}
                         saving={saving}
+                        onBack={handleBack}
                     />
                     <div className="gridContainer">
                         <div className="pagesAndLayerTab">
@@ -197,6 +223,15 @@ export default function Main() {
                         </button>
                     </div>*/}
                 </div>
+
+                {showLeaveModal && (
+                    <LeaveConfirmModal
+                        saving={saving}
+                        onSaveAndLeave={handleSaveAndLeave}
+                        onLeaveWithoutSaving={handleLeaveWithoutSaving}
+                        onCancel={handleCancelLeave}
+                    />
+                )}
             </div>
         </DndProvider>
     );

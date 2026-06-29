@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * Controler REST care implementează {@link PageApi}. Primește cererile HTTP legate de
+ * pagini, deleagă logica de afaceri către {@link PageService} și împachetează
+ * rezultatul în răspunsuri HTTP cu codul de stare corespunzător.
+ */
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -19,6 +24,10 @@ public class PageController implements PageApi {
 
     private final PageService pageService;
 
+    /**
+     * {@inheritDoc}
+     * Deleagă crearea către serviciu și returnează pagina creată cu stare 201.
+     */
     @Override
     public ResponseEntity<PageResponseDto> createPage(PageRequestDto pageRequestDto, Long projectId){
         log.info("Received request for createPage with {}", pageRequestDto);
@@ -27,6 +36,10 @@ public class PageController implements PageApi {
                 .body(pageService.createPage(pageRequestDto, projectId));
     }
 
+    /**
+     * {@inheritDoc}
+     * Returnează lista tuturor paginilor cu stare 200.
+     */
     @Override
     public ResponseEntity<List<PageResponseDto>> getAllPages(){
         log.info("Received request for getAllPages");
@@ -35,6 +48,10 @@ public class PageController implements PageApi {
                 .body(pageService.getAllPages());
     }
 
+    /**
+     * {@inheritDoc}
+     * Returnează pagina identificată prin {@code pageId} cu stare 200.
+     */
     @Override
     public ResponseEntity<PageResponseDto> getPageById(Long pageId){
         log.info("Received request for getPageById with: {}", pageId);
@@ -43,6 +60,10 @@ public class PageController implements PageApi {
                 .body(pageService.getPageById(pageId));
     }
 
+    /**
+     * {@inheritDoc}
+     * Returnează paginile proiectului identificat prin {@code projectId} cu stare 200.
+     */
     @Override
     public ResponseEntity<List<PageResponseDto>> getPagesByProjectId(@PathVariable Long projectId){
         log.info("Received request for getPagesByProjectId with id: {}", projectId);
@@ -51,6 +72,10 @@ public class PageController implements PageApi {
                 .body(pageService.getPagesByProjectId(projectId));
     }
 
+    /**
+     * {@inheritDoc}
+     * Deleagă actualizarea către serviciu și returnează pagina actualizată cu stare 200.
+     */
     @Override
     public ResponseEntity<PageResponseDto> updatePage(PageRequestDto pageRequestDto, Long pageId){
         log.info("Received request for updatePage with id: {} and {}", pageRequestDto, pageId);
@@ -59,6 +84,10 @@ public class PageController implements PageApi {
                 .body(pageService.updatePage(pageRequestDto, pageId));
     }
 
+    /**
+     * {@inheritDoc}
+     * Deleagă ștergerea către serviciu și returnează stare 204 fără conținut.
+     */
     @Override
     public ResponseEntity<Void> deletePage(Long pageId){
         log.info("Received request for deletePage with id: {}", pageId);

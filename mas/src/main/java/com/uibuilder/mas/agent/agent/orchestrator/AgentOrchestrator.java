@@ -41,6 +41,19 @@ public class AgentOrchestrator {
     private final Blackboard blackboard;
     private final AgentStatusPublisher statusPublisher;
 
+    /**
+     * Execută întreg pipeline-ul multi-agent pentru o cerere a utilizatorului, parcurgând
+     * cele patru faze (analiză, planificare, construire, validare) coordonate prin
+     * blackboard. Dacă validarea eșuează, întregul pipeline este reluat de la zero, până
+     * la cel mult {@link #MAX_ATTEMPTS} încercări. Pe parcurs emite evenimente de stare
+     * către frontend prin {@link AgentStatusPublisher}.
+     *
+     * @param userRequirement cerința în limbaj natural primită de la utilizator
+     * @return contextul de execuție cu rezultatele tuturor fazelor (model analizat, plan,
+     *         arbore de componente și rezultatul validării)
+     * @throws GenerationException dacă toate cele {@link #MAX_ATTEMPTS} încercări produc
+     *         un rezultat invalid
+     */
     public AgentExecutionContext execute(String userRequirement) {
         log.info("=== Starting MAS Execution Pipeline (max {} attempts) ===", MAX_ATTEMPTS);
 

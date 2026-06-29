@@ -19,18 +19,26 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Extracts high-level goals from user requirements using LLM.
+ * Extrage obiectivele de nivel înalt din cerința utilizatorului folosind un apel LLM.
+ * Construiește prompt-ul pe baza unui șablon, trimite cererea către model și
+ * deserializează răspunsul JSON în obiecte {@link Goal}.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class GoalExtractor {
-    
+
     private final AnthropicClient anthropicClient;
     private final ObjectMapper objectMapper;
     private final PromptLoader promptLoader;
     private final PromptRenderer promptRenderer;
 
+    /**
+     * Extrage obiectivele de design din cerința utilizatorului printr-un apel LLM.
+     *
+     * @param userRequirement cerința în limbaj natural a utilizatorului
+     * @return lista obiectivelor extrase
+     */
     public List<Goal> extractGoals(String userRequirement) {
         log.debug("Extracting goals from user requirement using LLM");
         
@@ -40,6 +48,13 @@ public class GoalExtractor {
         return parseGoalsFromLLMResponse(llmResponse);
     }
     
+    /**
+     * Construiește prompt-ul pentru extragerea obiectivelor, încărcând șablonul
+     * corespunzător și inserând cerința utilizatorului.
+     *
+     * @param userRequirement cerința utilizatorului inserată în șablon
+     * @return prompt-ul final trimis către LLM
+     */
     private String buildGoalExtractionPrompt(String userRequirement) {
 
         String template = promptLoader.load("analyst_goal_extraction_v1.md");
@@ -77,6 +92,13 @@ public class GoalExtractor {
                 """, userRequirement);*/
     }
     
+    /**
+     * Deserializează răspunsul LLM (un tablou JSON) în obiecte {@link Goal}. În caz de
+     * eroare la parsare, returnează un obiectiv implicit de rezervă.
+     *
+     * @param llmResponse răspunsul brut returnat de LLM
+     * @return lista obiectivelor parsate sau un obiectiv implicit dacă parsarea eșuează
+     */
     private List<Goal> parseGoalsFromLLMResponse(String llmResponse) {
         try {
             // Extract JSON from response (handle potential markdown code blocks)
@@ -118,6 +140,13 @@ public class GoalExtractor {
         }
     }
     
+    /**
+     * Curăță răspunsul LLM de eventualele blocuri de cod Markdown (```json ... ```),
+     * lăsând doar conținutul JSON.
+     *
+     * @param response răspunsul brut returnat de LLM
+     * @return șirul JSON curățat de delimitatorii Markdown
+     */
     private String extractJson(String response) {
         // Remove markdown code blocks if present
         String cleaned = response.trim();

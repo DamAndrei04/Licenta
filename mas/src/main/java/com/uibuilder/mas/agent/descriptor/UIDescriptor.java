@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Root descriptor matching the exported UI Builder JSON format.
- * Schema-driven - uses Maps for flexible property handling.
+ * Descriptorul rădăcină care corespunde formatului JSON exportat de constructorul de
+ * interfețe. Bazat pe schemă — folosește hărți pentru gestionarea flexibilă a
+ * proprietăților. Conține versiunea, pagina activă și paginile interfeței.
  */
 @Data
 public class UIDescriptor {
@@ -26,6 +27,10 @@ public class UIDescriptor {
     @JsonProperty("pages")
     private Map<String, PageDescriptor> pages;
     
+    /**
+     * Descriptorul unei pagini: nume, rută, componentele plasate, identificatorii
+     * componentelor rădăcină și componenta selectată.
+     */
     @Data
     public static class PageDescriptor {
         private String name;
@@ -34,7 +39,10 @@ public class UIDescriptor {
         private List<String> rootIds;
         private String selectedId;
     }
-    
+
+    /**
+     * Descriptorul unei componente: id, tip, layout, părinte, copii, proprietăți și aliniere.
+     */
     @Data
     public static class ComponentDescriptor {
         private String id;

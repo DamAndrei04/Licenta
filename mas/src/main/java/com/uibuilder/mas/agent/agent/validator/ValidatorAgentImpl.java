@@ -16,20 +16,30 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Default implementation of ValidatorAgent with LLM integration.
- * Delegates validation to rule components.
+ * Implementarea implicită a agentului Validator. Spre deosebire de ceilalți agenți,
+ * acesta nu folosește LLM: aplică reguli de validare deterministe (dacă există reguli
+ * înregistrate) și verificări structurale de bază (arborele să aibă pagini, iar fiecare
+ * pagină să aibă componente), publicând rezultatul pe blackboard.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ValidatorAgentImpl implements ValidatorAgent {
-    
+
     private final List<ValidationRule> validationRules;
     private final Blackboard blackboard;
     private final JsonUtils jsonUtils;
-    
+
     private final String agentId = "validator-" + UUID.randomUUID().toString().substring(0, 8);
-    
+
+    /**
+     * Validează arborele de componente prin aplicarea regulilor înregistrate și a
+     * verificărilor structurale de bază (existența paginilor și a componentelor pe
+     * fiecare pagină), apoi stochează rezultatul și un mesaj pe blackboard.
+     *
+     * @param componentTree arborele de componente UI care trebuie validat
+     * @return rezultatul validării (valid/invalid și lista încălcărilor găsite)
+     */
     @Override
     public ValidationResult validate(UIComponentTree componentTree) {
         log.info("[{}] Validating component tree: {}", agentId, componentTree.getTreeId());
@@ -90,6 +100,11 @@ public class ValidatorAgentImpl implements ValidatorAgent {
         return result;
     }
     
+    /**
+     * Returnează identificatorul unic al acestei instanțe de agent.
+     *
+     * @return identificatorul agentului
+     */
     @Override
     public String getAgentId() {
         return agentId;

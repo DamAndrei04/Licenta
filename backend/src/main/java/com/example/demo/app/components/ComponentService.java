@@ -21,6 +21,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Serviciu care implementează logica de afaceri pentru componentele UI ale paginilor.
+ * Permite citirea componentelor unei pagini și ștergerea componentelor asociate unui
+ * proiect. (O parte din operațiile CRUD sunt comentate, fiind acoperite de salvarea
+ * stării întregului workspace.)
+ */
 @Service
 @RequiredArgsConstructor
 public class ComponentService {
@@ -74,6 +80,13 @@ public class ComponentService {
         return ComponentConverter.convertToResponseDto(component);
     }*/
 
+    /**
+     * Returnează toate componentele care aparțin unei anumite pagini.
+     *
+     * @param pageId identificatorul paginii ale cărei componente se caută
+     * @return lista componentelor paginii sub formă de DTO-uri de răspuns
+     * @throws PageNotFoundException dacă pagina nu există
+     */
     public List<ComponentResponseDto> getComponentsByPageId(Long pageId) {
         if(!pageRepository.existsById(pageId))
             throw new PageNotFoundException(String.format("Page with id: %d not found", pageId));
@@ -96,6 +109,11 @@ public class ComponentService {
         return ComponentConverter.convertToResponseDto(updatedComponent);
     }*/
 
+    /**
+     * Șterge toate componentele asociate paginilor unui proiect.
+     *
+     * @param projectId identificatorul proiectului ale cărui componente se șterg
+     */
     public void deleteComponentByProjectId(Long projectId){
 
         List<PageEntity> pages = pageRepository.getPageEntitiesByProjectId(projectId);

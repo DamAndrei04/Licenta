@@ -11,6 +11,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entitate JPA care reprezintă un utilizator persistat în tabela {@code users}.
+ * Un utilizator are un nume unic, o parolă criptată și o listă de proiecte deținute.
+ */
 @Entity
 @Data
 @NoArgsConstructor
@@ -37,6 +41,9 @@ public class UserEntity {
     private List<ProjectEntity> projects = new ArrayList<>();
 
 
+    /**
+     * Callback JPA apelat înainte de prima persistare; setează data de creare a contului.
+     */
     @PrePersist
     private void onCreate(){
         createdAt = LocalDateTime.now();

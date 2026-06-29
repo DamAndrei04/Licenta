@@ -17,6 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Entitate JPA care reprezintă o componentă UI persistată în tabela {@code components}.
+ * O componentă aparține unei pagini, poate avea o componentă părinte și componente
+ * copil (structură arborescentă), iar proprietățile, layout-ul, evenimentele și starea
+ * sunt stocate ca obiecte JSON.
+ */
 @Entity
 @Data
 @NoArgsConstructor
@@ -70,11 +76,17 @@ public class ComponentEntity {
     private LocalDateTime updatedAt;
 
 
+    /**
+     * Callback JPA apelat înainte de prima persistare; setează data de creare.
+     */
     @PrePersist
     private void onCreate(){
         createdAt = LocalDateTime.now();
     }
 
+    /**
+     * Callback JPA apelat înainte de fiecare actualizare; setează data ultimei modificări.
+     */
     @PreUpdate
     private void onUpdate(){
         updatedAt = LocalDateTime.now();

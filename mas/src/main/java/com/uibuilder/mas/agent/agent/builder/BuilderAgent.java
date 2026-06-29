@@ -4,21 +4,23 @@ import com.uibuilder.mas.agent.agent.builder.model.UIComponentTree;
 import com.uibuilder.mas.agent.agent.planner.model.UIPlan;
 
 /**
- * Builder Agent interface - constructs UI components from plans.
- * Does not generate UI directly - delegates to generators.
+ * Interfața agentului Constructor (Builder) — construiește componentele UI pornind de la
+ * planuri. Nu generează direct interfața, ci deleagă generarea către generatoare.
  */
 public interface BuilderAgent {
-    
+
     /**
-     * Build UI component tree from execution plan.
-     * 
-     * @param plan The execution plan
-     * @return Immutable component tree
+     * Construiește arborele de componente UI pe baza planului de execuție.
+     *
+     * @param plan planul de execuție
+     * @return arborele de componente (imutabil)
      */
     UIComponentTree build(UIPlan plan);
-    
+
     /**
-     * Get agent identifier.
+     * Returnează identificatorul agentului.
+     *
+     * @return identificatorul agentului
      */
     String getAgentId();
 }
